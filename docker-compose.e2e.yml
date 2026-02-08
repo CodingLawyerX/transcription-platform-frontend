@@ -1,0 +1,6 @@
+services:
+  transcription-frontend:
+    environment:
+      - NEXT_PUBLIC_API_URL=http://transcription-platform-backendgit-django-1:8112/rest/api/v1
+      - NEXTAUTH_URL=http://transcription-frontend:3000
+      - NEXTAUTH_USE_SECURE_COOKIES=false

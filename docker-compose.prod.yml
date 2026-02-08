@@ -1,0 +1,38 @@
+services:
+  transcription-frontend:
+    build: .
+    container_name: transcription-frontend
+    restart: unless-stopped
+    environment:
+      - NEXT_PUBLIC_API_URL=https://backend.simpliant-ds.eu/rest/api/v1
+      - NEXT_PUBLIC_VOXTRAL_BACKEND_URL=https://transcribe.simpliant-ds.eu
+      - NEXTAUTH_URL=https://app.simpliant-ds.eu
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      # External URL for client-side requests
+      - NEXTAUTH_BACKEND_URL=https://backend.simpliant-ds.eu/rest/api/v1
+      # Internal Docker network for server-side requests (NextAuth authorize callback)
+      - NEXTAUTH_INTERNAL_BACKEND_URL=http://transcription-platform-backendgit-django-1:8112/rest/api/v1
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=transcription-platform-backendgit_default"
+      - "traefik.http.routers.transcription-frontend.rule=Host(`app.simpliant-ds.eu`)"
+      - "traefik.http.routers.transcription-frontend.entrypoints=websecure"
+      - "traefik.http.routers.transcription-frontend.tls=true"
+      - "traefik.http.routers.transcription-frontend.tls.certresolver=myresolver"
+      - "traefik.http.services.transcription-frontend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.transcription-frontend.middlewares=frontend-security@docker"
+      - "traefik.http.middlewares.frontend-security.headers.sslredirect=true"
+      - "traefik.http.middlewares.frontend-security.headers.stsseconds=31536000"
+      - "traefik.http.middlewares.frontend-security.headers.stsincludesubdomains=true"
+      - "traefik.http.middlewares.frontend-security.headers.stspreload=true"
+      - "traefik.http.middlewares.frontend-security.headers.forcestsheader=true"
+      - "traefik.http.middlewares.frontend-security.headers.customframeoptionsvalue=SAMEORIGIN"
+    networks:
+      - voxtral-backend_voxtral-network
+      - transcription-platform-backendgit_default
+
+networks:
+  voxtral-backend_voxtral-network:
+    external: true
+  transcription-platform-backendgit_default:
+    external: true
