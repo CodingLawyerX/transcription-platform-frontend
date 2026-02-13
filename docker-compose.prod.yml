@@ -10,8 +10,9 @@ services:
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       # External URL for client-side requests
       - NEXTAUTH_BACKEND_URL=https://backend.simpliant-ds.eu/rest/api/v1
-      # Internal Docker network for server-side requests (NextAuth authorize callback)
-      - NEXTAUTH_INTERNAL_BACKEND_URL=http://transcription-platform-backendgit-django-1:8112/rest/api/v1
+      # Internal backend URL for server-side requests (NextAuth authorize callback)
+      # Use public HTTPS to avoid internal DNS/host validation issues.
+      - NEXTAUTH_INTERNAL_BACKEND_URL=https://backend.simpliant-ds.eu/rest/api/v1
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=transcription-platform-backendgit_default"

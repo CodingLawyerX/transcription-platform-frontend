@@ -96,11 +96,28 @@ export async function transcribeAudio(
     body: formData,
   });
 
-  const data = await response.json();
+  let data: any = null;
+  const rawText = await response.text();
+  if (rawText) {
+    try {
+      data = JSON.parse(rawText);
+    } catch {
+      data = null;
+    }
+  }
 
   if (!response.ok) {
-    const message = data?.error || data?.detail || response.statusText || 'Unbekannter Fehler';
+    const message =
+      data?.error ||
+      data?.detail ||
+      rawText ||
+      response.statusText ||
+      'Unbekannter Fehler';
     throw new Error(message);
+  }
+
+  if (!data) {
+    throw new Error('Unerwartete Antwort vom Server.');
   }
 
   return data;

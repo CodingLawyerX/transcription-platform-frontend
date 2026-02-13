@@ -3,6 +3,8 @@ import { Sora, Fraunces } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from './SessionProvider'
 import Navigation from '@/components/Navigation'
+import Footer from '@/components/Footer'
+import { dictationCssVars } from '@/lib/design-tokens'
 
 const sora = Sora({
   subsets: ['latin'],
@@ -17,8 +19,15 @@ const fraunces = Fraunces({
 })
 
 export const metadata: Metadata = {
-  title: 'Simpliant App',
-  description: 'Sichere Arbeitsbereiche, klare Workflows und kollaborative Prozesse.',
+  title: 'Simpliant Transcribe',
+  description: 'Transkription für Word und Web – präzise, schnell und DSGVO-konform.',
+  icons: {
+    icon: [
+      { url: '/assets/simpliant-icon.svg', type: 'image/svg+xml' },
+      { url: '/assets/icon-32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [{ url: '/assets/icon-64.png', sizes: '64x64', type: 'image/png' }],
+  },
 }
 
 export default function RootLayout({
@@ -30,9 +39,13 @@ export default function RootLayout({
     <html lang="de">
       <body className={`${sora.variable} ${fraunces.variable} font-sans`}>
         <SessionProvider>
-          <div className="min-h-screen bg-gray-50">
+          <div
+            className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]"
+            style={dictationCssVars}
+          >
             <Navigation />
             <main>{children}</main>
+            <Footer />
           </div>
         </SessionProvider>
       </body>

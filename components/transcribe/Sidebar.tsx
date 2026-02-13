@@ -1,24 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import type { ConnectionStatus, TranscriptMetadata } from '@/types/transcribe';
-import ConnectionPanel from './ConnectionPanel';
+import type { TranscriptMetadata } from '@/types/transcribe';
 import AudioUploader from './AudioUploader';
 import AudioRecorder from './AudioRecorder';
 
 interface SidebarProps {
   apiBaseUrl: string;
   authToken?: string;
-  backendUrl: string;
-  apiKey: string;
-  onBackendUrlChange: (url: string) => void;
-  onApiKeyChange: (key: string) => void;
-  onSaveSettings: () => Promise<void> | void;
-  settingsDirty: boolean;
-  settingsSaving: boolean;
-  settingsError: string | null;
-  connectionStatus: ConnectionStatus;
-  onConnectionStatusChange: (status: ConnectionStatus) => void;
+  connectionReady: boolean;
   transcript: string;
   onTranscriptChange: (text: string) => void;
   onMetadataChange: (metadata: TranscriptMetadata) => void;
@@ -29,16 +19,7 @@ interface SidebarProps {
 export default function Sidebar({
   apiBaseUrl,
   authToken,
-  backendUrl,
-  apiKey,
-  onBackendUrlChange,
-  onApiKeyChange,
-  onSaveSettings,
-  settingsDirty,
-  settingsSaving,
-  settingsError,
-  connectionStatus,
-  onConnectionStatusChange,
+  connectionReady,
   transcript,
   onTranscriptChange,
   onMetadataChange,
@@ -58,25 +39,13 @@ export default function Sidebar({
         </p>
       </header>
 
-      <ConnectionPanel
-        apiBaseUrl={apiBaseUrl}
-        authToken={authToken}
-        backendUrl={backendUrl}
-        apiKey={apiKey}
-        onBackendUrlChange={onBackendUrlChange}
-        onApiKeyChange={onApiKeyChange}
-        onSaveSettings={onSaveSettings}
-        settingsDirty={settingsDirty}
-        settingsSaving={settingsSaving}
-        settingsError={settingsError}
-        connectionStatus={connectionStatus}
-        onConnectionStatusChange={onConnectionStatusChange}
-      />
-
       <AudioUploader
         apiBaseUrl={apiBaseUrl}
         authToken={authToken}
+        connectionReady={connectionReady}
         transcript={transcript}
+        language={language}
+        onLanguageChange={setLanguage}
         onTranscriptChange={onTranscriptChange}
         onMetadataChange={onMetadataChange}
         cursorPosition={cursorPosition}

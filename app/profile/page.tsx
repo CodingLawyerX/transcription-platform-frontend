@@ -1,9 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/auth';
+import { checkHealth, getSettings, updateSettings, maskModelName } from '@/lib/api/transcribe';
+import type { ConnectionStatus } from '@/types/transcribe';
+
+const DEFAULT_VOXTRAL_URL =
+  process.env.NEXT_PUBLIC_VOXTRAL_BACKEND_URL || 'https://transcribe.simpliant-ds.eu';
 
 interface ProfileData {
   username: string;
@@ -20,11 +26,24 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [message, setMessage] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'profile' | 'password'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'transcription'>('profile');
   const [passwordData, setPasswordData] = useState({
     oldPassword: '',
     newPassword1: '',
     newPassword2: '',
+  });
+  const [transcriptionSettings, setTranscriptionSettings] = useState({
+    backendUrl: DEFAULT_VOXTRAL_URL,
+    apiKey: '',
+  });
+  const [transcriptionDirty, setTranscriptionDirty] = useState(false);
+  const [transcriptionSaving, setTranscriptionSaving] = useState(false);
+  const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
+  const [transcriptionStatus, setTranscriptionStatus] = useState<ConnectionStatus>({
+    connected: false,
+    status: 'Bereit',
+    model: '–',
+    haveKey: false,
   });
 
   const fetchProfile = useCallback(async () => {
@@ -60,6 +79,49 @@ export default function ProfilePage() {
 
     fetchProfile();
   }, [status, session, router, fetchProfile]);
+
+  const fetchTranscriptionSettings = useCallback(async () => {
+    if (!session?.accessToken) return;
+    try {
+      const settings = await getSettings(undefined, { authToken: session.accessToken });
+      setTranscriptionSettings({
+        backendUrl: settings?.backend_url || DEFAULT_VOXTRAL_URL,
+        apiKey: settings?.api_key || '',
+      });
+      setTranscriptionDirty(false);
+      setTranscriptionError(null);
+    } catch (error: any) {
+      setTranscriptionError(error?.message || 'Einstellungen konnten nicht geladen werden.');
+    }
+  }, [session]);
+
+  const refreshTranscriptionStatus = useCallback(async () => {
+    if (!session?.accessToken) return;
+    try {
+      const data = await checkHealth(undefined, { authToken: session.accessToken });
+      const statusText = data?.status || 'ok';
+      const displayModel = data?.model ? maskModelName(data.model) : '–';
+      setTranscriptionStatus({
+        connected: true,
+        status: statusText,
+        model: displayModel,
+        haveKey: data?.have_key ?? false,
+      });
+    } catch (error) {
+      setTranscriptionStatus({
+        connected: false,
+        status: 'nicht erreichbar',
+        model: '–',
+        haveKey: false,
+      });
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (!session?.accessToken) return;
+    fetchTranscriptionSettings();
+    refreshTranscriptionStatus();
+  }, [session, fetchTranscriptionSettings, refreshTranscriptionStatus]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -100,6 +162,40 @@ export default function ProfilePage() {
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPasswordData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleTranscriptionSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTranscriptionSettings(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+    setTranscriptionDirty(true);
+    setTranscriptionError(null);
+  };
+
+  const handleTranscriptionSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session?.accessToken) return;
+
+    setTranscriptionSaving(true);
+    setTranscriptionError(null);
+    try {
+      await updateSettings(
+        {
+          backend_url: transcriptionSettings.backendUrl,
+          api_key: transcriptionSettings.apiKey,
+        },
+        undefined,
+        { authToken: session.accessToken }
+      );
+      setTranscriptionDirty(false);
+      await refreshTranscriptionStatus();
+    } catch (error: any) {
+      setTranscriptionError(error?.message || 'Einstellungen konnten nicht gespeichert werden.');
+    } finally {
+      setTranscriptionSaving(false);
+    }
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -156,10 +252,10 @@ export default function ProfilePage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Lade Profil...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[hsl(var(--primary))] mx-auto"></div>
+          <p className="mt-4 text-[hsl(var(--muted-foreground))]">Lade Profil...</p>
         </div>
       </div>
     );
@@ -171,10 +267,10 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="max-w-md w-full rounded-lg border border-gray-200 bg-white p-6 text-center shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">Profil konnte nicht geladen werden</h2>
-          <p className="mt-2 text-sm text-gray-600">
+      <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] px-4">
+        <div className="max-w-md w-full rounded-lg border border-[hsl(var(--border))] bg-white p-6 text-center shadow-sm">
+          <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Profil konnte nicht geladen werden</h2>
+          <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
             Bitte versuchen Sie es erneut oder melden Sie sich erneut an.
           </p>
           {errors.length > 0 && (
@@ -189,13 +285,13 @@ export default function ProfilePage() {
           <div className="mt-4 flex flex-col gap-2">
             <button
               onClick={fetchProfile}
-              className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              className="w-full rounded-md bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] px-4 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_6px_16px_hsl(var(--primary)/0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)]"
             >
               Erneut versuchen
             </button>
             <button
               onClick={() => router.push('/login')}
-              className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="w-full rounded-md border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))/0.35]"
             >
               Zur Anmeldung
             </button>
@@ -205,48 +301,61 @@ export default function ProfilePage() {
     );
   }
 
-  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || profile.username)}&background=4f46e5&color=fff`;
+  const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || profile.username)}&background=007aff&color=fff`;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-[hsl(var(--background))] py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="bg-white shadow rounded-2xl overflow-hidden border border-[hsl(var(--border))]">
           {/* Header mit Avatar */}
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-8">
-            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6">
-              <div className="relative">
-                <img
+          <div className="bg-[linear-gradient(120deg,hsl(var(--primary)/0.16),hsl(var(--primary)/0.06))] px-6 py-6">
+            <div className="flex flex-col sm:flex-row items-center gap-5">
+              <div className="relative h-20 w-20">
+                <Image
                   src={avatarUrl}
                   alt="Avatar"
-                  className="h-32 w-32 rounded-full border-4 border-white shadow-lg object-cover"
+                  width={80}
+                  height={80}
+                  className="h-20 w-20 rounded-full border border-white shadow-sm object-cover"
                 />
               </div>
               <div className="text-center sm:text-left">
-                <h1 className="text-3xl font-bold text-white">{profile.username}</h1>
-                <p className="text-indigo-100">{profile.email}</p>
+                <h1 className="text-2xl font-semibold text-[hsl(var(--foreground))]">{profile.username}</h1>
+                <p className="text-sm text-[hsl(var(--muted-foreground))]">{profile.email}</p>
                 <div className="mt-2 flex flex-wrap gap-2 justify-center sm:justify-start">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-indigo-700">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-[hsl(var(--muted-foreground))] border border-[hsl(var(--border))]">
                     Profil
                   </span>
+                  {profile.email_verified === false && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                      Email nicht verifiziert
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="border-b border-gray-200">
-            <nav className="flex -mb-px">
+          <div className="border-b border-[hsl(var(--border))]">
+            <nav className="flex -mb-px flex-wrap">
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${activeTab === 'profile' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                className={`py-4 px-6 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'profile' ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]' : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--border))]'}`}
               >
                 Profil bearbeiten
               </button>
               <button
                 onClick={() => setActiveTab('password')}
-                className={`py-4 px-6 text-sm font-medium border-b-2 transition-colors ${activeTab === 'password' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                className={`py-4 px-6 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'password' ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]' : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--border))]'}`}
               >
                 Passwort ändern
+              </button>
+              <button
+                onClick={() => setActiveTab('transcription')}
+                className={`py-4 px-6 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'transcription' ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]' : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--border))]'}`}
+              >
+                Transkription
               </button>
             </nav>
           </div>
@@ -284,10 +393,10 @@ export default function ProfilePage() {
             {activeTab === 'profile' && (
               <form onSubmit={handleProfileSubmit} className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Account-Informationen</h3>
+                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-4">Account-Informationen</h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="username" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
                         Benutzername
                       </label>
                       <input
@@ -295,12 +404,12 @@ export default function ProfilePage() {
                         id="username"
                         value={profile.username}
                         disabled
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
+                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] cursor-not-allowed"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="email" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
                         Email-Adresse
                       </label>
                       <input
@@ -308,7 +417,7 @@ export default function ProfilePage() {
                         id="email"
                         value={profile.email}
                         disabled
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 bg-gray-100 text-gray-500 cursor-not-allowed"
+                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -340,10 +449,10 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Persönliche Informationen</h3>
+                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-4">Persönliche Informationen</h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="sm:col-span-2">
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="name" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
                         Name
                       </label>
                       <input
@@ -352,7 +461,7 @@ export default function ProfilePage() {
                         name="name"
                         value={profile.name || ''}
                         onChange={handleChange}
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
                       />
                     </div>
                   </div>
@@ -362,7 +471,7 @@ export default function ProfilePage() {
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-semibold rounded-md text-[hsl(var(--primary-foreground))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {isSaving ? 'Wird gespeichert...' : 'Profil speichern'}
                   </button>
@@ -374,10 +483,10 @@ export default function ProfilePage() {
             {activeTab === 'password' && (
               <form onSubmit={handlePasswordSubmit} className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Passwort ändern</h3>
+                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-4">Passwort ändern</h3>
                   <div className="space-y-4">
                     <div>
-                      <label htmlFor="oldPassword" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="oldPassword" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
                         Aktuelles Passwort
                       </label>
                       <input
@@ -387,12 +496,12 @@ export default function ProfilePage() {
                         value={passwordData.oldPassword}
                         onChange={handlePasswordChange}
                         required
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="newPassword1" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="newPassword1" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
                         Neues Passwort
                       </label>
                       <input
@@ -402,12 +511,12 @@ export default function ProfilePage() {
                         value={passwordData.newPassword1}
                         onChange={handlePasswordChange}
                         required
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="newPassword2" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="newPassword2" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
                         Neues Passwort bestätigen
                       </label>
                       <input
@@ -417,7 +526,7 @@ export default function ProfilePage() {
                         value={passwordData.newPassword2}
                         onChange={handlePasswordChange}
                         required
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
                       />
                     </div>
                   </div>
@@ -427,9 +536,90 @@ export default function ProfilePage() {
                   <button
                     type="submit"
                     disabled={isSaving}
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-semibold rounded-md text-[hsl(var(--primary-foreground))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {isSaving ? 'Wird gespeichert...' : 'Passwort ändern'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Transkription Tab */}
+            {activeTab === 'transcription' && (
+              <form onSubmit={handleTranscriptionSave} className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-4">Voxtral-Verbindung</h3>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                      transcriptionStatus.status === 'ok' ? 'bg-[hsl(var(--success-green))/0.16] text-[hsl(var(--success-green))]' : 'bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))]'
+                    }`}>
+                      Status: {transcriptionStatus.status}
+                    </span>
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))]">
+                      Modell: {transcriptionStatus.model}
+                    </span>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                      transcriptionStatus.haveKey ? 'bg-[hsl(var(--success-green))/0.16] text-[hsl(var(--success-green))]' : 'bg-[hsl(var(--warning-orange))/0.16] text-[hsl(var(--warning-orange))]'
+                    }`}>
+                      API-Key: {transcriptionStatus.haveKey ? 'aktiv' : 'fehlt'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={refreshTranscriptionStatus}
+                      className="ml-auto inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))/0.35]"
+                    >
+                      Status prüfen
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <label htmlFor="backendUrl" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                        Service-URL
+                      </label>
+                      <input
+                        type="url"
+                        id="backendUrl"
+                        name="backendUrl"
+                        value={transcriptionSettings.backendUrl}
+                        onChange={handleTranscriptionSettingsChange}
+                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label htmlFor="apiKey" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                        API-Key
+                      </label>
+                      <input
+                        type="password"
+                        id="apiKey"
+                        name="apiKey"
+                        value={transcriptionSettings.apiKey}
+                        onChange={handleTranscriptionSettingsChange}
+                        placeholder="API-Key einfügen"
+                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
+                      />
+                      <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))]">
+                        Wird verschlüsselt gespeichert und nur für die Transkription verwendet.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {transcriptionError && (
+                  <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {transcriptionError}
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={transcriptionSaving || !transcriptionDirty}
+                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-semibold rounded-md text-[hsl(var(--primary-foreground))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  >
+                    {transcriptionSaving ? 'Wird gespeichert...' : 'Einstellungen speichern'}
                   </button>
                 </div>
               </form>

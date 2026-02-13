@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import type { TranscriptMetadata } from '@/types/transcribe';
 import { transcribeAudio, maskModelName } from '@/lib/api/transcribe';
 
@@ -26,9 +26,10 @@ export default function AudioRecorder({
   selectedText,
 }: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
-  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [recStatus, setRecStatus] = useState('Mikrofon ist bereit.');
   const [recState, setRecState] = useState<'idle' | 'busy' | 'success' | 'error'>('idle');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [elapsedMs, setElapsedMs] = useState(0);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -37,18 +38,20 @@ export default function AudioRecorder({
   const [isAudioSupported, setIsAudioSupported] = useState(true);
   const transcriptRef = useRef(transcript);
   const isRecordingRef = useRef(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number | null>(null);
 
   // Check if browser supports media devices
-  const isMediaDevicesSupported = () => {
+  const isMediaDevicesSupported = useCallback(() => {
     return typeof navigator !== 'undefined' &&
            navigator.mediaDevices &&
            typeof navigator.mediaDevices.getUserMedia === 'function';
-  };
+  }, []);
 
   // Check if running in secure context (HTTPS)
-  const isSecureContext = () => {
+  const isSecureContext = useCallback(() => {
     return typeof window !== 'undefined' && window.isSecureContext;
-  };
+  }, []);
 
   // Check browser compatibility on component mount
   useEffect(() => {
@@ -62,12 +65,20 @@ export default function AudioRecorder({
       setRecStatus('Audio-Aufnahme erfordert HTTPS-Verbindung.');
       setRecState('error');
     }
-  }, []);
+  }, [isMediaDevicesSupported, isSecureContext]);
 
   // Update ref when transcript changes
   useEffect(() => {
     transcriptRef.current = transcript;
   }, [transcript]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
   const insertTranscript = useCallback((newText: string) => {
     const cleaned = (newText || '').trim();
@@ -125,6 +136,7 @@ export default function AudioRecorder({
   }, [cursorPosition, selectedText, onTranscriptChange]);
 
   const handleTranscribe = useCallback(async (blob: Blob) => {
+    setIsProcessing(true);
     setRecStatus('Verarbeite Live-Aufnahme …');
     setRecState('busy');
 
@@ -169,6 +181,9 @@ export default function AudioRecorder({
         model: '–',
         language: '–',
       });
+    } finally {
+      setIsProcessing(false);
+      setElapsedMs(0);
     }
   }, [apiBaseUrl, authToken, language, onMetadataChange, insertTranscript]);
 
@@ -236,9 +251,24 @@ export default function AudioRecorder({
         setRecState('busy');
         setIsRecording(true);
         isRecordingRef.current = true;
+        startTimeRef.current = Date.now();
+        setElapsedMs(0);
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+        timerRef.current = setInterval(() => {
+          if (startTimeRef.current) {
+            setElapsedMs(Date.now() - startTimeRef.current);
+          }
+        }, 100);
       };
 
       mediaRecorder.onstop = async () => {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+        startTimeRef.current = null;
         // Stop all tracks in the stream
         if (streamRef.current) {
           streamRef.current.getTracks().forEach(track => track.stop());
@@ -255,8 +285,6 @@ export default function AudioRecorder({
           setRecState('error');
           return;
         }
-
-        setRecordedBlob(blob);
 
         // Show player
         if (audioPlayerRef.current) {
@@ -306,6 +334,14 @@ export default function AudioRecorder({
     }
     isRecordingRef.current = false;
   }, []);
+
+  const toggleRecording = useCallback(() => {
+    if (isRecordingRef.current) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  }, [startRecording, stopRecording]);
 
   // Keyboard shortcut: Hold Ctrl to record
   useEffect(() => {
@@ -363,42 +399,106 @@ export default function AudioRecorder({
   }, [startRecording, stopRecording]);
 
 
-  return (
-    <section className="bg-[rgba(246,248,253,0.6)] border border-[rgba(46,72,121,0.08)] rounded-xl p-5 flex flex-col gap-4">
-      <h2 className="m-0 text-base font-semibold text-muted-strong tracking-wide">
-        Live-Aufnahme
-      </h2>
+  const durationLabel = useMemo(() => {
+    const totalSeconds = Math.floor(elapsedMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  }, [elapsedMs]);
 
-      <div className="flex gap-3">
+  const statusBadge = useMemo(() => {
+    if (isRecording) {
+      return { label: 'Aufnahme', tone: 'recording' as const };
+    }
+    if (isProcessing || recState === 'busy') {
+      return { label: 'Verarbeitung', tone: 'processing' as const };
+    }
+    if (recState === 'error') {
+      return { label: 'Fehler', tone: 'error' as const };
+    }
+    return { label: 'Bereit', tone: 'ready' as const };
+  }, [isRecording, isProcessing, recState]);
+
+  const badgeClass = useMemo(() => {
+    switch (statusBadge.tone) {
+      case 'recording':
+        return 'bg-[hsl(var(--recording-red))/0.15] text-[hsl(var(--recording-red))] border-[hsl(var(--recording-red))/0.3]';
+      case 'processing':
+        return 'bg-[hsl(var(--warning-orange))/0.15] text-[hsl(var(--warning-orange))] border-[hsl(var(--warning-orange))/0.3]';
+      case 'error':
+        return 'bg-[hsl(var(--recording-red))/0.12] text-[hsl(var(--recording-red))] border-[hsl(var(--recording-red))/0.3]';
+      default:
+        return 'bg-[hsl(var(--success-green))/0.15] text-[hsl(var(--success-green))] border-[hsl(var(--success-green))/0.3]';
+    }
+  }, [statusBadge.tone]);
+
+  return (
+    <section
+      className={`rounded-[var(--radius)] border p-5 transition-all ${
+        isRecording
+          ? 'border-[hsl(var(--recording-red))/0.25] bg-[hsl(var(--recording-red))/0.03] shadow-[0_4px_12px_rgba(244,67,54,0.12)]'
+          : 'border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <div className={`inline-flex items-center gap-2 rounded-[calc(var(--radius)-2px)] border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${badgeClass}`}>
+          <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
+          <span>{statusBadge.label}</span>
+        </div>
+        <span className={`text-[13px] font-semibold ${isRecording ? 'text-[hsl(var(--recording-red))]' : 'text-[hsl(var(--muted-foreground))]'}`}>
+          {durationLabel}
+        </span>
+      </div>
+
+      <div className="mt-5 flex flex-col items-center gap-4">
         <button
-          onClick={startRecording}
-          disabled={isRecording || !isAudioSupported}
-          className="btn btn-primary flex-1"
-          title={!isAudioSupported ? "Audio-Aufnahme wird von diesem Browser nicht unterstützt" : ""}
+          onClick={toggleRecording}
+          disabled={!isAudioSupported}
+          className={`relative flex h-[88px] w-[88px] items-center justify-center rounded-full text-white transition-all ${
+            isRecording
+              ? 'bg-[linear-gradient(135deg,hsl(var(--recording-red)),hsl(0_82%_61%))] animate-[dictation-ring_2s_cubic-bezier(0.4,0,0.6,1)_infinite]'
+              : 'bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] shadow-[0_4px_16px_hsl(var(--primary)/0.4)] hover:scale-[1.05] hover:shadow-[0_8px_24px_hsl(var(--primary)/0.35)]'
+          } disabled:opacity-60 disabled:cursor-not-allowed`}
+          aria-label={isRecording ? 'Aufnahme stoppen' : 'Aufnahme starten'}
+          title={!isAudioSupported ? 'Audio-Aufnahme wird von diesem Browser nicht unterstützt' : ''}
         >
-          Aufnahme starten
+          {isRecording ? (
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="6" y="4" width="4" height="16" rx="1" />
+              <rect x="14" y="4" width="4" height="16" rx="1" />
+            </svg>
+          ) : (
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="22" />
+            </svg>
+          )}
         </button>
-        <button
-          onClick={stopRecording}
-          disabled={!isRecording}
-          className="btn btn-ghost flex-1"
-        >
-          Stopp
-        </button>
+
+        <div className={`flex h-12 items-center justify-center gap-1.5 ${isRecording ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          {Array.from({ length: 7 }).map((_, index) => (
+            <span
+              key={index}
+              className="w-[3px] rounded-full bg-[linear-gradient(to_top,hsl(var(--recording-red)),hsl(0_82%_61%))] shadow-[0_0_8px_hsl(var(--recording-red)/0.5)] animate-[dictation-wave_1.2s_ease-in-out_infinite]"
+              style={{ animationDelay: `${index * 0.08}s` }}
+            />
+          ))}
+        </div>
       </div>
 
       <audio
         ref={audioPlayerRef}
         controls
         hidden
-        className="w-full rounded-xl mt-1.5"
+        className="w-full rounded-xl mt-4"
       />
 
-      <div className={`text-[13px] ${
-        recState === 'busy' ? 'status-busy' :
-        recState === 'success' ? 'status-success' :
-        recState === 'error' ? 'status-error' :
-        'status-muted'
+      <div className={`mt-4 text-[12px] ${
+        recState === 'busy' ? 'text-[hsl(var(--primary))]' :
+        recState === 'success' ? 'text-[hsl(var(--success-green))]' :
+        recState === 'error' ? 'text-[hsl(var(--recording-red))]' :
+        'text-[hsl(var(--muted-foreground))]'
       }`}>
         {recStatus}
       </div>

@@ -155,8 +155,81 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.6' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
     pointer-events: none;
   }
+
+  .dictation-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .dictation-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .dictation-scroll::-webkit-scrollbar-thumb {
+    background: rgba(115, 126, 151, 0.28);
+    border-radius: 999px;
+  }
+
+  .dictation-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(115, 126, 151, 0.45);
+  }
 }
 
+@layer utilities {
+  @keyframes fade-up {
+    0% {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes dictation-wave {
+    0%,
+    100% {
+      height: 8px;
+      opacity: 0.4;
+    }
+    50% {
+      height: 40px;
+      opacity: 1;
+    }
+  }
+
+  @keyframes dictation-ring {
+    0% {
+      box-shadow: 0 4px 16px rgba(244, 67, 54, 0.5),
+        0 0 0 0 rgba(244, 67, 54, 0.4);
+    }
+    50% {
+      box-shadow: 0 4px 20px rgba(244, 67, 54, 0.6),
+        0 0 0 12px rgba(244, 67, 54, 0);
+    }
+    100% {
+      box-shadow: 0 4px 16px rgba(244, 67, 54, 0.5),
+        0 0 0 0 rgba(244, 67, 54, 0);
+    }
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.7s ease-out both;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.8s ease-out both;
+  }
+}
 
 
 @layer base {

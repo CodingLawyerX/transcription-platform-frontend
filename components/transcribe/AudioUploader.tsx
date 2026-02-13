@@ -1,47 +1,59 @@
 'use client';
 
-import { useState, useRef, DragEvent, ChangeEvent } from 'react';
+import { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react';
 import type { TranscriptMetadata } from '@/types/transcribe';
 import { transcribeAudio, maskModelName } from '@/lib/api/transcribe';
+import { TRANSCRIBE_LANGUAGE_OPTIONS } from '@/lib/transcribe-languages';
 
 interface AudioUploaderProps {
   apiBaseUrl: string;
   authToken?: string;
+  connectionReady?: boolean;
   transcript: string;
+  language: string;
+  onLanguageChange: (language: string) => void;
   onTranscriptChange: (text: string) => void;
   onMetadataChange: (metadata: TranscriptMetadata) => void;
   cursorPosition?: number | null;
   selectedText?: string;
 }
 
-const SUPPORTED_LANGUAGES = [
-  { value: 'auto', label: 'Automatisch erkennen' },
-  { value: 'de', label: 'DE' },
-  { value: 'en', label: 'EN' },
-  { value: 'fr', label: 'FR' },
-  { value: 'es', label: 'ES' },
-  { value: 'it', label: 'IT' },
-];
-
 export default function AudioUploader({
   apiBaseUrl,
   authToken,
+  connectionReady,
   transcript,
+  language,
+  onLanguageChange,
   onTranscriptChange,
   onMetadataChange,
   cursorPosition,
   selectedText,
 }: AudioUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [language, setLanguage] = useState('auto');
   const [uploadStatus, setUploadStatus] = useState('Warte auf Audio …');
   const [uploadState, setUploadState] = useState<'idle' | 'busy' | 'success' | 'error'>('idle');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const transcriptRef = useRef(transcript);
+
+  useEffect(() => {
+    transcriptRef.current = transcript;
+  }, [transcript]);
 
   const handleFileSelect = (file: File | null) => {
     setSelectedFile(file);
     if (file) {
+      if (file.size > 50 * 1024 * 1024) {
+        setUploadStatus('Datei ist zu groß (max. 50 MB).');
+        setUploadState('error');
+        return;
+      }
+      if (!file.type.startsWith('audio/')) {
+        setUploadStatus('Diese Datei ist kein Audioformat.');
+        setUploadState('error');
+        return;
+      }
       setUploadStatus(`Bereit: ${file.name}`);
       setUploadState('idle');
     } else {
@@ -95,7 +107,7 @@ export default function AudioUploader({
     const cleaned = (newText || '').trim();
     if (!cleaned) return;
 
-    const currentText = transcript;
+    const currentText = transcriptRef.current;
     let newValue = '';
     let newCursorPosition = cursorPosition;
 
@@ -149,14 +161,7 @@ export default function AudioUploader({
 
     onTranscriptChange(newValue);
     
-    // Update cursor position after insertion
-    setTimeout(() => {
-      if (newCursorPosition !== null && newCursorPosition !== undefined) {
-        // This will trigger the cursor position update in Workspace
-        const event = new Event('input', { bubbles: true });
-        document.dispatchEvent(event);
-      }
-    }, 0);
+    // Cursor position updates are handled by the Workspace handlers.
   };
 
   const handleUpload = async () => {
@@ -167,6 +172,11 @@ export default function AudioUploader({
     }
     if (!authToken) {
       setUploadStatus('Bitte melde dich an, um zu transkribieren.');
+      setUploadState('error');
+      return;
+    }
+    if (connectionReady === false) {
+      setUploadStatus('API-Key fehlt. Bitte im Profil hinterlegen.');
       setUploadState('error');
       return;
     }
@@ -219,16 +229,25 @@ export default function AudioUploader({
   };
 
   return (
-    <section className="bg-[rgba(246,248,253,0.6)] border border-[rgba(46,72,121,0.08)] rounded-xl p-5 flex flex-col gap-4">
-      <h2 className="m-0 text-base font-semibold text-muted-strong tracking-wide">
-        Audio hochladen
-      </h2>
+    <section className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] p-4 flex flex-col gap-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]">
+      <div className="flex items-center justify-between">
+        <h2 className="m-0 text-[12px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+          Audio-Upload
+        </h2>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="text-[12px] font-semibold text-[hsl(var(--primary))] hover:text-[hsl(var(--primary-dark))] transition-colors"
+        >
+          Datei wählen
+        </button>
+      </div>
 
       <label
-        className={`border-2 border-dashed rounded-2xl p-6 bg-primary/[0.05] cursor-pointer transition-all duration-200 ${
+        className={`rounded-[calc(var(--radius)+4px)] border border-dashed px-4 py-4 text-center text-[13px] text-[hsl(var(--muted-foreground))] transition-all ${
           isDragging
-            ? 'border-primary bg-primary/[0.15]'
-            : 'border-primary/[0.26] hover:-translate-y-0.5 hover:border-primary/[0.55] hover:bg-primary/[0.08]'
+            ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10'
+            : 'border-[hsl(var(--border))] bg-white/70 hover:bg-white'
         }`}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
@@ -242,45 +261,45 @@ export default function AudioUploader({
           onChange={handleFileInputChange}
           className="hidden"
         />
-        <div className="flex flex-col items-center gap-2 text-center text-muted-strong text-sm">
-          <strong className="text-base text-primary">Datei auswählen</strong>
-          <span>Ziehe Audio hierhin oder klicke zum Durchsuchen.</span>
-          <span className="text-muted text-[13px]">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[13px] font-semibold text-[hsl(var(--foreground))]">
+            Ziehe Audio hierhin oder tippe zum Auswählen
+          </span>
+          <span className="text-[12px] text-[hsl(var(--muted-foreground))]">
             {selectedFile ? selectedFile.name : 'Keine Datei gewählt'}
           </span>
         </div>
       </label>
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-[13px] font-medium text-muted-strong tracking-wider uppercase">
-          Bevorzugte Sprache
-        </span>
-        <select
-          value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-          className="px-3.5 py-2.5 pr-10 rounded-xl border border-[rgba(35,62,112,0.22)] text-[15px] bg-white/92 appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2712%27%20height=%278%27%20fill=%27none%27%3E%3Cpath%20stroke=%27%2353648f%27%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%20stroke-width=%271.5%27%20d=%27m1%201.5%205%205%205-5%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_14px_center] transition-all duration-200 focus:outline-none focus:border-primary/60 focus:shadow-[0_0_0_4px_rgba(47,74,203,0.18)]"
+      <div className="flex items-center gap-2">
+        <label className="flex-1">
+          <span className="sr-only">Bevorzugte Sprache</span>
+          <select
+            value={language}
+            onChange={(e) => onLanguageChange(e.target.value)}
+            className="w-full rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--border))] bg-white px-3 py-2 text-[13px] font-medium text-[hsl(var(--foreground))] appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2712%27%20height=%278%27%20fill=%27none%27%3E%3Cpath%20stroke=%27%2353648f%27%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%20stroke-width=%271.5%27%20d=%27m1%201.5%205%205%205-5%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_12px_center] transition-all focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.12)]"
+          >
+            {TRANSCRIBE_LANGUAGE_OPTIONS.map((lang) => (
+              <option key={lang.value} value={lang.value}>
+                {lang.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          onClick={handleUpload}
+          disabled={uploadState === 'busy'}
+          className="rounded-[calc(var(--radius)-2px)] px-3 py-2 text-[13px] font-semibold text-[hsl(var(--primary-foreground))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] shadow-[0_6px_16px_hsl(var(--primary)/0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)] disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none"
         >
-          {SUPPORTED_LANGUAGES.map((lang) => (
-            <option key={lang.value} value={lang.value}>
-              {lang.label}
-            </option>
-          ))}
-        </select>
-      </label>
+          Transkribieren
+        </button>
+      </div>
 
-      <button
-        onClick={handleUpload}
-        disabled={uploadState === 'busy'}
-        className="btn btn-primary"
-      >
-        Datei transkribieren
-      </button>
-
-      <span className={`text-[13px] min-h-[18px] ${
-        uploadState === 'busy' ? 'status-busy' :
-        uploadState === 'success' ? 'status-success' :
-        uploadState === 'error' ? 'status-error' :
-        'status-muted'
+      <span className={`text-[12px] min-h-[16px] ${
+        uploadState === 'busy' ? 'text-[hsl(var(--primary))]' :
+        uploadState === 'success' ? 'text-[hsl(var(--success-green))]' :
+        uploadState === 'error' ? 'text-[hsl(var(--recording-red))]' :
+        'text-[hsl(var(--muted-foreground))]'
       }`}>
         {uploadStatus}
       </span>

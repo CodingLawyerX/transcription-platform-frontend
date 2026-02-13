@@ -68,7 +68,7 @@ export default function ForgotPasswordForm() {
                 <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                   <p className="font-medium">Email gesendet.</p>
                   <p className="mt-1">
-                    Wir haben einen Link an <strong>{email}</strong> gesendet.
+                    Falls ein Konto mit <strong>{email}</strong> existiert, haben wir einen Link gesendet.
                     Bitte prüfen Sie Ihren Posteingang und den Spam-Ordner.
                   </p>
                 </div>

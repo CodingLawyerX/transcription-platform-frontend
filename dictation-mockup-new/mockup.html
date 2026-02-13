@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simpliant Diktat - Modern Office Add-in</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Design Tokens - Light Mode with True Blue */
+            --background: 0 0% 100%;
+            --foreground: 222 47% 11%;
+            --card: 0 0% 100%;
+            --card-foreground: 222 47% 11%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 222 47% 11%;
+            --primary: 211 100% 50%;  /* #007AFF - True iOS blue */
+            --primary-foreground: 0 0% 100%;
+            --secondary: 210 40% 96%;
+            --secondary-foreground: 222 47% 11%;
+            --muted: 210 40% 96%;
+            --muted-foreground: 215 16% 47%;
+            --accent: 210 40% 96%;
+            --accent-foreground: 222 47% 11%;
+            --destructive: 0 72% 51%;
+            --destructive-foreground: 0 0% 100%;
+            --border: 214 32% 91%;
+            --input: 214 32% 91%;
+            --ring: 211 100% 50%;
+            --radius: 0.5rem;
+            
+            /* App-specific */
+            --primary-light: 211 100% 55%;  /* lighter blue for hover */
+            --primary-dark: 211 100% 45%;   /* darker blue for active */
+            --recording-red: 0 72% 51%;
+            --success-green: 142 71% 45%;
+            --warning-orange: 25 95% 53%;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 122, 255, 0.12);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            padding: 0;
+            margin: 0;
+            max-width: 400px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Header with glassmorphism */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: -0.5px;
+            box-shadow: 0 2px 8px hsl(var(--primary) / 0.2);
+        }
+
+        .app-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            letter-spacing: -0.3px;
+        }
+
+        /* Language selector - minimal button */
+        .lang-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 10px;
+            background: hsl(var(--secondary));
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) - 2px);
+            color: hsl(var(--muted-foreground));
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .lang-btn:hover {
+            background: hsl(var(--accent) / 0.1);
+            border-color: hsl(var(--accent) / 0.3);
+            color: hsl(var(--foreground));
+        }
+
+        /* Main content area */
+        .content {
+            flex: 1;
+            padding: 20px 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Status card with neumorphism */
+        .status-card {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 
+                        0 1px 2px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .status-card.active {
+            background: hsl(var(--recording-red) / 0.03);
+            border-color: hsl(var(--recording-red) / 0.25);
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.12),
+                        0 2px 4px rgba(244, 67, 54, 0.08);
+        }
+
+        /* Status indicator */
+        .status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: calc(var(--radius) - 2px);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .status-badge.ready {
+            background: hsl(var(--success-green) / 0.15);
+            color: hsl(var(--success-green));
+            border: 1px solid hsl(var(--success-green) / 0.3);
+        }
+
+        .status-badge.recording {
+            background: hsl(var(--recording-red) / 0.15);
+            color: hsl(var(--recording-red));
+            border: 1px solid hsl(var(--recording-red) / 0.3);
+            animation: pulse-badge 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .status-badge.processing {
+            background: hsl(var(--warning-orange) / 0.15);
+            color: hsl(var(--warning-orange));
+            border: 1px solid hsl(var(--warning-orange) / 0.3);
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .duration {
+            font-size: 14px;
+            font-weight: 600;
+            color: hsl(var(--muted-foreground));
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+        }
+
+        .duration.active {
+            color: hsl(var(--recording-red));
+        }
+
+        /* Record button - hero element */
+        .record-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 0;
+        }
+
+        .record-button {
+            position: relative;
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+            color: white;
+            font-size: 36px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px hsl(var(--primary) / 0.4),
+                        0 0 0 0 hsl(var(--primary) / 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .record-button::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 50%;
+            padding: 2px;
+            background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .record-button:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, hsl(var(--primary-dark)), hsl(var(--primary)));
+            box-shadow: 0 8px 24px hsl(var(--primary) / 0.35),
+                        0 0 0 8px hsl(var(--primary) / 0.08);
+        }
+
+        .record-button:hover::before {
+            opacity: 1;
+        }
+
+        .record-button:active {
+            transform: scale(0.98);
+        }
+
+        .record-button.recording {
+            background: linear-gradient(135deg, hsl(var(--recording-red)), hsl(0 82% 61%));
+            box-shadow: 0 4px 16px hsl(var(--recording-red) / 0.5),
+                        0 0 0 0 hsl(var(--recording-red) / 0.4);
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                box-shadow: 0 4px 16px hsl(var(--recording-red) / 0.5),
+                           0 0 0 0 hsl(var(--recording-red) / 0.4);
+            }
+            50% {
+                box-shadow: 0 4px 20px hsl(var(--recording-red) / 0.6),
+                           0 0 0 12px hsl(var(--recording-red) / 0);
+            }
+            100% {
+                box-shadow: 0 4px 16px hsl(var(--recording-red) / 0.5),
+                           0 0 0 0 hsl(var(--recording-red) / 0);
+            }
+        }
+
+        .record-icon {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .record-button.recording .record-icon {
+            transform: scale(0.85);
+        }
+
+        /* Waveform visualization */
+        .waveform {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            height: 48px;
+        }
+
+        .waveform.active {
+            display: flex;
+        }
+
+        .wave-bar {
+            width: 3px;
+            background: linear-gradient(to top, hsl(var(--recording-red)), hsl(0 82% 61%));
+            border-radius: 2px;
+            animation: wave 1.2s ease-in-out infinite;
+            box-shadow: 0 0 8px hsl(var(--recording-red) / 0.5);
+        }
+
+        .wave-bar:nth-child(1) { animation-delay: 0s; }
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.15s; }
+        .wave-bar:nth-child(5) { animation-delay: 0.25s; }
+        .wave-bar:nth-child(6) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(7) { animation-delay: 0.3s; }
+
+        @keyframes wave {
+            0%, 100% { height: 8px; opacity: 0.4; }
+            50% { height: 40px; opacity: 1; }
+        }
+
+        /* Transcription section */
+        .transcription-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 200px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: hsl(var(--muted-foreground));
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .word-count {
+            font-size: 11px;
+            color: hsl(var(--muted-foreground));
+            font-variant-numeric: tabular-nums;
+        }
+
+        .transcription-box {
+            flex: 1;
+            background: hsl(var(--secondary));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 14px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: hsl(var(--foreground));
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+        }
+
+        .transcription-box:empty::before {
+            content: 'Transkription erscheint hier...';
+            color: hsl(var(--muted-foreground));
+            font-size: 13px;
+        }
+
+        .transcription-box:focus-within {
+            border-color: hsl(var(--ring));
+            background: hsl(0 0% 100%);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06),
+                        0 0 0 3px hsl(var(--ring) / 0.1);
+        }
+
+        /* Scrollbar styling */
+        .transcription-box::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .transcription-box::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .transcription-box::-webkit-scrollbar-thumb {
+            background: hsl(var(--muted-foreground) / 0.25);
+            border-radius: 3px;
+        }
+
+        .transcription-box::-webkit-scrollbar-thumb:hover {
+            background: hsl(var(--muted-foreground) / 0.4);
+        }
+
+        /* Action buttons */
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.05));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+            color: hsl(var(--primary-foreground));
+            border-color: transparent;
+            box-shadow: 0 2px 8px hsl(var(--primary) / 0.25);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, hsl(var(--primary-dark)), hsl(var(--primary)));
+            box-shadow: 0 4px 12px hsl(var(--primary) / 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: hsl(var(--secondary));
+            color: hsl(var(--foreground));
+            border-color: hsl(var(--border));
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: hsl(var(--accent) / 0.1);
+            border-color: hsl(var(--accent) / 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Upload toggle */
+        .upload-toggle {
+            background: transparent;
+            border: 1px dashed hsl(var(--border));
+            padding: 10px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 12px;
+            color: hsl(var(--muted-foreground));
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+        }
+
+        .upload-toggle:hover {
+            background: hsl(var(--accent) / 0.05);
+            border-color: hsl(var(--accent) / 0.3);
+            color: hsl(var(--foreground));
+        }
+
+        /* Utility classes */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">S</div>
+            <span class="app-title">Diktat</span>
+        </div>
+        <button class="lang-btn" aria-label="Sprache ändern">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            <span>DE</span>
+        </button>
+    </header>
+
+    <!-- Main content -->
+    <main class="content">
+        <!-- Status card -->
+        <section class="status-card" id="statusCard">
+            <div class="status-row">
+                <div class="status-badge ready" id="statusBadge">
+                    <span class="status-dot"></span>
+                    <span>Bereit</span>
+                </div>
+                <div class="duration" id="duration">00:00</div>
+            </div>
+
+            <!-- Record button -->
+            <div class="record-zone">
+                <button class="record-button" id="recordBtn" aria-label="Aufnahme starten/stoppen">
+                    <svg class="record-icon" id="recordIcon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" y1="19" x2="12" y2="22"/>
+                    </svg>
+                </button>
+
+                <!-- Waveform -->
+                <div class="waveform" id="waveform" aria-hidden="true">
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transcription -->
+        <section class="transcription-section">
+            <div class="section-header">
+                <span class="section-label">Transkription</span>
+                <span class="word-count" id="wordCount">0 Wörter</span>
+            </div>
+            <div class="transcription-box" id="transcription" contenteditable="true" role="textbox" aria-label="Transkribierter Text"></div>
+        </section>
+
+        <!-- Upload hint -->
+        <button class="upload-toggle" id="uploadToggle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <span>Audio-Datei hochladen</span>
+        </button>
+    </main>
+
+    <!-- Actions -->
+    <footer class="actions">
+        <button class="btn btn-primary" id="insertBtn" disabled aria-label="Text an Cursor einfügen">
+            <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            <span>An Cursor einfügen</span>
+        </button>
+        <button class="btn btn-secondary" id="replaceBtn" disabled aria-label="Markierung ersetzen">
+            <svg class="btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10"/>
+                <polyline points="23 20 23 14 17 14"/>
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+            </svg>
+            <span>Auswahl ersetzen</span>
+        </button>
+    </footer>
+
+    <script>
+        let isRecording = false;
+        let startTime;
+        let timerInterval;
+
+        // Elements
+        const recordBtn = document.getElementById('recordBtn');
+        const recordIcon = document.getElementById('recordIcon');
+        const statusBadge = document.getElementById('statusBadge');
+        const statusCard = document.getElementById('statusCard');
+        const duration = document.getElementById('duration');
+        const waveform = document.getElementById('waveform');
+        const transcription = document.getElementById('transcription');
+        const wordCount = document.getElementById('wordCount');
+        const insertBtn = document.getElementById('insertBtn');
+        const replaceBtn = document.getElementById('replaceBtn');
+        const uploadToggle = document.getElementById('uploadToggle');
+
+        // Event listeners
+        recordBtn.addEventListener('click', toggleRecording);
+        transcription.addEventListener('input', updateWordCount);
+
+        function toggleRecording() {
+            isRecording = !isRecording;
+            
+            if (isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
+        function startRecording() {
+            // UI updates
+            recordBtn.classList.add('recording');
+            // Change to pause icon
+            recordIcon.innerHTML = `
+                <rect x="6" y="4" width="4" height="16" rx="1"/>
+                <rect x="14" y="4" width="4" height="16" rx="1"/>
+            `;
+            statusCard.classList.add('active');
+            statusBadge.className = 'status-badge recording';
+            statusBadge.innerHTML = '<span class="status-dot"></span><span>Aufnahme</span>';
+            waveform.classList.add('active');
+            duration.classList.add('active');
+            
+            // Start timer
+            startTime = Date.now();
+            timerInterval = setInterval(updateDuration, 100);
+
+            // Announce to screen readers
+            announceToScreenReader('Aufnahme gestartet');
+        }
+
+        function stopRecording() {
+            // UI updates
+            recordBtn.classList.remove('recording');
+            // Change back to microphone icon
+            recordIcon.innerHTML = `
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+            `;
+            statusBadge.className = 'status-badge processing';
+            statusBadge.innerHTML = '<span class="status-dot"></span><span>Verarbeitung</span>';
+            waveform.classList.remove('active');
+            
+            // Stop timer
+            clearInterval(timerInterval);
+            
+            // Simulate processing
+            setTimeout(() => {
+                statusCard.classList.remove('active');
+                statusBadge.className = 'status-badge ready';
+                statusBadge.innerHTML = '<span class="status-dot"></span><span>Fertig</span>';
+                duration.classList.remove('active');
+                duration.textContent = '00:00';
+                
+                // Add sample transcription with micro-interaction
+                transcription.style.transition = 'all 0.3s ease';
+                transcription.style.transform = 'scale(0.98)';
+                
+                setTimeout(() => {
+                    transcription.textContent = 'Dies ist eine Beispiel-Transkription. In einer echten Anwendung würde hier das Ergebnis der Spracherkennung in Echtzeit erscheinen, während Sie sprechen.';
+                    transcription.style.transform = 'scale(1)';
+                    updateWordCount();
+                    
+                    // Enable buttons
+                    insertBtn.disabled = false;
+                    replaceBtn.disabled = false;
+
+                    // Announce completion
+                    announceToScreenReader('Transkription abgeschlossen');
+                }, 50);
+            }, 2000);
+        }
+
+        function updateDuration() {
+            const elapsed = Date.now() - startTime;
+            const totalSeconds = Math.floor(elapsed / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            
+            duration.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function updateWordCount() {
+            const text = transcription.textContent.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            wordCount.textContent = `${words} ${words === 1 ? 'Wort' : 'Wörter'}`;
+        }
+
+        function announceToScreenReader(message) {
+            const announcement = document.createElement('div');
+            announcement.setAttribute('role', 'status');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.className = 'sr-only';
+            announcement.textContent = message;
+            document.body.appendChild(announcement);
+            
+            setTimeout(() => {
+                document.body.removeChild(announcement);
+            }, 1000);
+        }
+
+        // Button actions
+        insertBtn.addEventListener('click', () => {
+            // Micro-interaction feedback
+            insertBtn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                insertBtn.style.transform = 'scale(1)';
+                alert('Text wird an Cursor-Position eingefügt (Office.js Integration)');
+            }, 100);
+        });
+
+        replaceBtn.addEventListener('click', () => {
+            // Micro-interaction feedback
+            replaceBtn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                replaceBtn.style.transform = 'scale(1)';
+                alert('Markierter Text wird ersetzt (Office.js Integration)');
+            }, 100);
+        });
+
+        uploadToggle.addEventListener('click', () => {
+            alert('Datei-Upload-Dialog würde sich öffnen');
+        });
+
+        // Keyboard accessibility
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + Space to toggle recording
+            if ((e.ctrlKey || e.metaKey) && e.code === 'Space') {
+                e.preventDefault();
+                toggleRecording();
+            }
+            
+            // Ctrl/Cmd + Enter to insert
+            if ((e.ctrlKey || e.metaKey) && e.code === 'Enter' && !insertBtn.disabled) {
+                e.preventDefault();
+                insertBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
