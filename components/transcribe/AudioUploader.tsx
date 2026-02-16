@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react';
 import type { TranscriptMetadata } from '@/types/transcribe';
 import { transcribeAudio, maskModelName } from '@/lib/api/transcribe';
 import { TRANSCRIBE_LANGUAGE_OPTIONS } from '@/lib/transcribe-languages';
+import { Button } from '@/components/ui/button';
 
 interface AudioUploaderProps {
   apiBaseUrl: string;
@@ -231,25 +232,25 @@ export default function AudioUploader({
   };
 
   return (
-    <section className={`rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 flex flex-col gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.08)] ${className ?? ''}`}>
+    <section className={`rounded-[var(--radius)] border border-border bg-card p-4 flex flex-col gap-3 shadow-panel ${className ?? ''}`}>
       <div className="flex items-center justify-between">
-        <h2 className="m-0 text-[12px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+        <h2 className="m-0 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
           Audio-Upload
         </h2>
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="text-[12px] font-semibold text-[hsl(var(--primary))] hover:text-[hsl(var(--primary-dark))] transition-colors"
+          className="text-xs font-semibold text-primary hover:text-primary-dark transition-colors"
         >
           Datei wählen
         </button>
       </div>
 
       <label
-        className={`rounded-[calc(var(--radius)+4px)] border border-dashed px-4 py-4 text-center text-[13px] text-[hsl(var(--muted-foreground))] transition-all ${
+        className={`rounded-[calc(var(--radius)+4px)] border border-dashed px-4 py-4 text-center text-sm text-muted-foreground transition-all ${
           isDragging
-            ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10'
-            : 'border-[hsl(var(--border))] bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--secondary))/0.8]'
+            ? 'border-primary bg-primary/10'
+            : 'border-border bg-secondary hover:bg-secondary/80'
         }`}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
@@ -264,10 +265,10 @@ export default function AudioUploader({
           className="hidden"
         />
         <div className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-semibold text-[hsl(var(--foreground))]">
+          <span className="text-sm font-semibold text-foreground">
             Ziehe Audio hierhin oder tippe zum Auswählen
           </span>
-          <span className="text-[12px] text-[hsl(var(--muted-foreground))]">
+          <span className="text-xs text-muted-foreground">
             {selectedFile ? selectedFile.name : 'Keine Datei gewählt'}
           </span>
         </div>
@@ -279,7 +280,7 @@ export default function AudioUploader({
           <select
             value={language}
             onChange={(e) => onLanguageChange(e.target.value)}
-            className="w-full rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] px-3 py-2 text-[13px] font-medium text-[hsl(var(--foreground))] appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2712%27%20height=%278%27%20fill=%27none%27%3E%3Cpath%20stroke=%27%2353648f%27%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%20stroke-width=%271.5%27%20d=%27m1%201.5%205%205%205-5%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_12px_center] transition-all focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.12)]"
+            className="w-full rounded-[calc(var(--radius)-2px)] border border-border bg-secondary px-3 py-2 text-sm font-medium text-foreground appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2712%27%20height=%278%27%20fill=%27none%27%3E%3Cpath%20stroke=%27%2353648f%27%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%20stroke-width=%271.5%27%20d=%27m1%201.5%205%205%205-5%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_12px_center] transition-all focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring/20"
           >
             {TRANSCRIBE_LANGUAGE_OPTIONS.map((lang) => (
               <option key={lang.value} value={lang.value}>
@@ -288,20 +289,21 @@ export default function AudioUploader({
             ))}
           </select>
         </label>
-        <button
+        <Button
           onClick={handleUpload}
           disabled={uploadState === 'busy'}
-          className="rounded-[calc(var(--radius)-2px)] px-3 py-2 text-[13px] font-semibold text-[hsl(var(--primary-foreground))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] shadow-[0_6px_16px_hsl(var(--primary)/0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)] disabled:opacity-60 disabled:cursor-not-allowed disabled:shadow-none"
+          size="sm"
+          className="rounded-[calc(var(--radius)-2px)]"
         >
           Transkribieren
-        </button>
+        </Button>
       </div>
 
-      <span className={`text-[12px] min-h-[16px] ${
-        uploadState === 'busy' ? 'text-[hsl(var(--primary))]' :
-        uploadState === 'success' ? 'text-[hsl(var(--success-green))]' :
-        uploadState === 'error' ? 'text-[hsl(var(--recording-red))]' :
-        'text-[hsl(var(--muted-foreground))]'
+      <span className={`text-xs min-h-[16px] ${
+        uploadState === 'busy' ? 'text-primary' :
+        uploadState === 'success' ? 'text-success' :
+        uploadState === 'error' ? 'text-recording' :
+        'text-muted-foreground'
       }`}>
         {uploadStatus}
       </span>

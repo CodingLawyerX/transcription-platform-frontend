@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import type { ConnectionStatus } from '@/types/transcribe';
 import { checkHealth, maskModelName } from '@/lib/api/transcribe';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface ConnectionPanelProps {
   apiBaseUrl: string;
@@ -73,96 +76,91 @@ export default function ConnectionPanel({
   };
 
   return (
-    <section className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))/0.92] p-4 flex flex-col gap-3">
+    <section className="rounded-2xl border border-border bg-card/90 p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
         <h2 className="m-0 text-sm font-semibold text-muted-strong tracking-wide">
           Verbindung
         </h2>
-        <button
+        <Button
           onClick={handlePing}
-          className="btn btn-outline px-3 py-1.5 text-[13px]"
+          variant="outline"
+          size="sm"
+          className="px-3 py-1.5 text-xs"
         >
           Verbindung testen
-        </button>
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <span className={`status-pill ${
-          connectionStatus.status === 'ok' ? 'status-pill-success' : 'status-pill-muted'
-        }`}>
+        <Badge variant={connectionStatus.status === 'ok' ? 'status-success' : 'status-muted'}>
           Status: {connectionStatus.status}
-        </span>
-        <span className={`status-pill ${
-          connectionStatus.model !== '–' ? 'status-pill-muted' : 'status-pill-error'
-        }`}>
+        </Badge>
+        <Badge variant={connectionStatus.model !== '–' ? 'status-muted' : 'status-error'}>
           Modell: {connectionStatus.model}
-        </span>
-        <span className={`status-pill ${
-          connectionStatus.haveKey ? 'status-pill-success' : 'status-pill-error'
-        }`}>
+        </Badge>
+        <Badge variant={connectionStatus.haveKey ? 'status-success' : 'status-error'}>
           API-Key: {connectionStatus.haveKey ? 'aktiv' : 'fehlt'}
-        </span>
+        </Badge>
       </div>
 
-      <span className={`text-[13px] min-h-[18px] ${
-        pingState === 'busy' ? 'status-busy' :
-        pingState === 'success' ? 'status-success' :
-        pingState === 'error' ? 'status-error' :
-        'status-muted'
+      <span className={`text-xs min-h-[18px] ${
+        pingState === 'busy' ? 'text-primary font-medium' :
+        pingState === 'success' ? 'text-success font-medium' :
+        pingState === 'error' ? 'text-destructive font-medium' :
+        'text-muted-foreground'
       }`}>
         {pingStatus}
       </span>
 
-      <details className="group rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] px-4 py-3">
-        <summary className="cursor-pointer list-none text-[13px] font-semibold text-muted-strong tracking-wide">
+      <details className="group rounded-xl border border-border bg-secondary px-4 py-3">
+        <summary className="cursor-pointer list-none text-xs font-semibold text-muted-strong tracking-wide">
           Verbindungseinstellungen
         </summary>
 
         <div className="mt-3 flex flex-col gap-3">
           <label className="flex flex-col gap-1.5">
-            <span className="text-[12px] font-medium text-muted-strong tracking-wider uppercase">
+            <span className="text-xs font-medium text-muted-strong tracking-wider uppercase">
               Service-URL
             </span>
-            <input
+            <Input
               type="url"
               value={backendUrl}
               onChange={(e) => onBackendUrlChange(e.target.value)}
               placeholder="https://transcribe.simpliant-ds.eu"
-              className="px-3.5 py-2.5 rounded-xl border border-[hsl(var(--border))] text-[15px] bg-[hsl(var(--card))] transition-all duration-200 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_4px_hsl(var(--ring)/0.16)]"
+              className="rounded-xl px-3.5 py-2.5 text-sm"
             />
           </label>
 
           <label className="flex flex-col gap-1.5">
-            <span className="text-[12px] font-medium text-muted-strong tracking-wider uppercase">
+            <span className="text-xs font-medium text-muted-strong tracking-wider uppercase">
               API-Key
             </span>
-            <input
+            <Input
               type="password"
               value={apiKey}
               onChange={(e) => onApiKeyChange(e.target.value)}
               placeholder="API-Key einfügen"
-              className="px-3.5 py-2.5 rounded-xl border border-[hsl(var(--border))] text-[15px] bg-[hsl(var(--card))] transition-all duration-200 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_4px_hsl(var(--ring)/0.16)]"
+              className="rounded-xl px-3.5 py-2.5 text-sm"
             />
           </label>
 
           <div className="flex flex-col gap-2">
-            <button
+            <Button
               onClick={onSaveSettings}
-              className="btn btn-primary"
               disabled={settingsSaving || !settingsDirty || !authToken}
             >
               {settingsSaving ? 'Speichere …' : 'Speichern'}
-            </button>
+            </Button>
             {settingsError && (
-              <span className="text-[13px] text-error">{settingsError}</span>
+              <span className="text-xs text-destructive">{settingsError}</span>
             )}
             {!authToken && (
-              <span className="text-[13px] text-muted">
+              <span className="text-xs text-muted-foreground">
                 Melde dich an, um die Verbindung zu speichern und zu testen.
               </span>
             )}
             {settingsDirty && !settingsSaving && (
-              <span className="text-[13px] text-muted">
+              <span className="text-xs text-muted-foreground">
                 Änderungen wurden noch nicht gespeichert.
               </span>
             )}

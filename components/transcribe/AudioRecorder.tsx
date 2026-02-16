@@ -424,13 +424,13 @@ export default function AudioRecorder({
   const badgeClass = useMemo(() => {
     switch (statusBadge.tone) {
       case 'recording':
-        return 'bg-[hsl(var(--recording-red))/0.15] text-[hsl(var(--recording-red))] border-[hsl(var(--recording-red))/0.3]';
+        return 'bg-recording/15 text-recording border-recording/30';
       case 'processing':
-        return 'bg-[hsl(var(--warning-orange))/0.15] text-[hsl(var(--warning-orange))] border-[hsl(var(--warning-orange))/0.3]';
+        return 'bg-warning/15 text-warning border-warning/30';
       case 'error':
-        return 'bg-[hsl(var(--recording-red))/0.12] text-[hsl(var(--recording-red))] border-[hsl(var(--recording-red))/0.3]';
+        return 'bg-recording/12 text-recording border-recording/30';
       default:
-        return 'bg-[hsl(var(--primary))/0.12] text-[hsl(var(--primary))] border-[hsl(var(--primary))/0.25]';
+        return 'bg-primary/12 text-primary border-primary/25';
     }
   }, [statusBadge.tone]);
 
@@ -438,16 +438,16 @@ export default function AudioRecorder({
     <section
       className={`rounded-[var(--radius)] border p-5 transition-all ${
         isRecording
-          ? 'border-[hsl(var(--recording-red))/0.25] bg-[hsl(var(--recording-red))/0.03] shadow-[0_4px_12px_rgba(244,67,54,0.12)]'
-          : 'border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
+          ? 'border-recording/25 bg-recording/5 shadow-recording-soft'
+          : 'border-border bg-card shadow-panel'
       } ${className ?? ''}`}
     >
       <div className="flex items-center justify-between">
-        <div className={`inline-flex items-center gap-2 rounded-[calc(var(--radius)-2px)] border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${badgeClass}`}>
+        <div className={`inline-flex items-center gap-2 rounded-[calc(var(--radius)-2px)] border px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${badgeClass}`}>
           <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
           <span>{statusBadge.label}</span>
         </div>
-        <span className={`text-[13px] font-semibold ${isRecording ? 'text-[hsl(var(--recording-red))]' : 'text-[hsl(var(--muted-foreground))]'}`}>
+        <span className={`text-sm font-semibold ${isRecording ? 'text-recording' : 'text-muted-foreground'}`}>
           {durationLabel}
         </span>
       </div>
@@ -458,8 +458,8 @@ export default function AudioRecorder({
           disabled={!isAudioSupported}
           className={`relative flex h-[88px] w-[88px] items-center justify-center rounded-full text-white transition-all ${
             isRecording
-              ? 'bg-[linear-gradient(135deg,hsl(var(--recording-red)),hsl(0_82%_61%))] animate-[dictation-ring_2s_cubic-bezier(0.4,0,0.6,1)_infinite]'
-              : 'bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] shadow-[0_4px_16px_hsl(var(--primary)/0.4)] hover:scale-[1.05] hover:shadow-[0_8px_24px_hsl(var(--primary)/0.35)]'
+              ? 'bg-gradient-to-br from-recording to-red-500 animate-[dictation-ring_2s_cubic-bezier(0.4,0,0.6,1)_infinite]'
+              : 'bg-gradient-primary shadow-primary-soft hover:scale-[1.05] hover:shadow-primary-strong'
           } disabled:opacity-60 disabled:cursor-not-allowed`}
           aria-label={isRecording ? 'Aufnahme stoppen' : 'Aufnahme starten'}
           title={!isAudioSupported ? 'Audio-Aufnahme wird von diesem Browser nicht unterstützt' : ''}
@@ -482,7 +482,7 @@ export default function AudioRecorder({
           {Array.from({ length: 7 }).map((_, index) => (
             <span
               key={index}
-              className="w-[3px] rounded-full bg-[linear-gradient(to_top,hsl(var(--recording-red)),hsl(0_82%_61%))] shadow-[0_0_8px_hsl(var(--recording-red)/0.5)] animate-[dictation-wave_1.2s_ease-in-out_infinite]"
+              className="w-[3px] rounded-full bg-gradient-to-t from-recording to-red-500 shadow-recording-glow animate-[dictation-wave_1.2s_ease-in-out_infinite]"
               style={{ animationDelay: `${index * 0.08}s` }}
             />
           ))}
@@ -496,11 +496,11 @@ export default function AudioRecorder({
         className="w-full rounded-xl mt-4"
       />
 
-      <div className={`mt-4 text-[12px] ${
-        recState === 'busy' ? 'text-[hsl(var(--primary))]' :
-        recState === 'success' ? 'text-[hsl(var(--success-green))]' :
-        recState === 'error' ? 'text-[hsl(var(--recording-red))]' :
-        'text-[hsl(var(--muted-foreground))]'
+      <div className={`mt-4 text-xs ${
+        recState === 'busy' ? 'text-primary' :
+        recState === 'success' ? 'text-success' :
+        recState === 'error' ? 'text-recording' :
+        'text-muted-foreground'
       }`}>
         {recStatus}
       </div>

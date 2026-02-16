@@ -7,6 +7,9 @@ import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/auth';
 import { checkHealth, getSettings, updateSettings, maskModelName } from '@/lib/api/transcribe';
 import type { ConnectionStatus } from '@/types/transcribe';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const DEFAULT_VOXTRAL_URL =
   process.env.NEXT_PUBLIC_VOXTRAL_BACKEND_URL || 'https://transcribe.simpliant-ds.eu';
@@ -252,10 +255,10 @@ export default function ProfilePage() {
 
   if (status === 'loading' || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[hsl(var(--primary))] mx-auto"></div>
-          <p className="mt-4 text-[hsl(var(--muted-foreground))]">Lade Profil...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Lade Profil...</p>
         </div>
       </div>
     );
@@ -267,14 +270,14 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] px-4">
-        <div className="max-w-md w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 text-center shadow-sm">
-          <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Profil konnte nicht geladen werden</h2>
-          <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="max-w-md w-full rounded-lg border border-border bg-card p-6 text-center shadow-sm">
+          <h2 className="text-lg font-semibold text-foreground">Profil konnte nicht geladen werden</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
             Bitte versuchen Sie es erneut oder melden Sie sich erneut an.
           </p>
           {errors.length > 0 && (
-            <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="mt-4 rounded-md border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               <ul className="list-disc list-inside space-y-1">
                 {errors.map((error, index) => (
                   <li key={index}>{error}</li>
@@ -283,18 +286,19 @@ export default function ProfilePage() {
             </div>
           )}
           <div className="mt-4 flex flex-col gap-2">
-            <button
+            <Button
               onClick={fetchProfile}
-              className="w-full rounded-md bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] px-4 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_6px_16px_hsl(var(--primary)/0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)]"
+              className="w-full"
             >
               Erneut versuchen
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => router.push('/login')}
-              className="w-full rounded-md border border-[hsl(var(--border))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))/0.35]"
+              variant="outline"
+              className="w-full"
             >
               Zur Anmeldung
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -304,32 +308,32 @@ export default function ProfilePage() {
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name || profile.username)}&background=007aff&color=fff`;
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))] py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-2xl overflow-hidden border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow">
+        <div className="rounded-2xl overflow-hidden border border-border bg-card shadow">
           {/* Header mit Avatar */}
-          <div className="bg-[linear-gradient(120deg,hsl(var(--primary)/0.16),hsl(var(--primary)/0.06))] px-6 py-6">
-            <div className="flex flex-col sm:flex-row items-center gap-5">
-              <div className="relative h-20 w-20">
+          <div className="px-6 py-5 border-b border-border">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="relative h-14 w-14">
                 <Image
                   src={avatarUrl}
                   alt="Avatar"
-                  width={80}
-                  height={80}
-                  className="h-20 w-20 rounded-full border border-white shadow-sm object-cover"
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 rounded-full border border-border shadow-sm object-cover"
                 />
               </div>
               <div className="text-center sm:text-left">
-                <h1 className="text-2xl font-semibold text-[hsl(var(--foreground))]">{profile.username}</h1>
-                <p className="text-sm text-[hsl(var(--muted-foreground))]">{profile.email}</p>
+                <h1 className="text-xl font-semibold text-foreground">{profile.username}</h1>
+                <p className="text-sm text-muted-foreground">{profile.email}</p>
                 <div className="mt-2 flex flex-wrap gap-2 justify-center sm:justify-start">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] border border-[hsl(var(--border))]">
+                  <Badge variant="status-muted">
                     Profil
-                  </span>
+                  </Badge>
                   {profile.email_verified === false && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                    <Badge variant="status-warning">
                       Email nicht verifiziert
-                    </span>
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -337,23 +341,23 @@ export default function ProfilePage() {
           </div>
 
           {/* Tabs */}
-          <div className="border-b border-[hsl(var(--border))]">
+          <div className="border-b border-border bg-secondary/40">
             <nav className="flex -mb-px flex-wrap">
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`py-4 px-6 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'profile' ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]' : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--border))]'}`}
+                className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'profile' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'}`}
               >
                 Profil bearbeiten
               </button>
               <button
                 onClick={() => setActiveTab('password')}
-                className={`py-4 px-6 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'password' ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]' : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--border))]'}`}
+                className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'password' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'}`}
               >
                 Passwort ändern
               </button>
               <button
                 onClick={() => setActiveTab('transcription')}
-                className={`py-4 px-6 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'transcription' ? 'border-[hsl(var(--primary))] text-[hsl(var(--primary))]' : 'border-transparent text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--border))]'}`}
+                className={`py-3 px-6 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'transcription' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'}`}
               >
                 Transkription
               </button>
@@ -363,23 +367,23 @@ export default function ProfilePage() {
           {/* Content */}
           <div className="p-6">
             {message && (
-              <div className="mb-6 rounded-md border border-[hsl(var(--success-green))/0.25] bg-[hsl(var(--success-green))/0.08] p-4">
+              <div className="mb-6 rounded-md border border-success/25 bg-success/10 p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-[hsl(var(--success-green))]" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-5 w-5 text-success" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm text-[hsl(var(--success-green))]">{message}</p>
+                    <p className="text-sm text-success">{message}</p>
                   </div>
                 </div>
               </div>
             )}
 
             {errors.length > 0 && (
-              <div className="mb-6 rounded-md border border-[hsl(var(--destructive))/0.25] bg-[hsl(var(--destructive))/0.08] p-4">
-                <div className="text-sm text-[hsl(var(--destructive))]">
+              <div className="mb-6 rounded-md border border-destructive/25 bg-destructive/10 p-4">
+                <div className="text-sm text-destructive">
                   <ul className="list-disc list-inside space-y-1">
                     {errors.map((error, index) => (
                       <li key={index}>{error}</li>
@@ -393,88 +397,89 @@ export default function ProfilePage() {
             {activeTab === 'profile' && (
               <form onSubmit={handleProfileSubmit} className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-4">Account-Informationen</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Account-Informationen</h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                      <label htmlFor="username" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                      <label htmlFor="username" className="block text-sm font-medium text-muted-foreground">
                         Benutzername
                       </label>
-                      <input
+                      <Input
                         type="text"
                         id="username"
                         value={profile.username}
                         disabled
-                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] cursor-not-allowed"
+                        className="mt-1 bg-secondary text-muted-foreground"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                      <label htmlFor="email" className="block text-sm font-medium text-muted-foreground">
                         Email-Adresse
                       </label>
-                      <input
+                      <Input
                         type="email"
                         id="email"
                         value={profile.email}
                         disabled
-                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] cursor-not-allowed"
+                        className="mt-1 bg-secondary text-muted-foreground"
                       />
                     </div>
                   </div>
 
                   {profile.email_verified === false && (
-                    <div className="mt-4 rounded-md border border-[hsl(var(--warning-orange))/0.25] bg-[hsl(var(--warning-orange))/0.08] p-4">
+                    <div className="mt-4 rounded-md border border-warning/25 bg-warning/10 p-4">
                       <div className="flex items-center flex-wrap">
                         <div className="flex-shrink-0">
-                          <svg className="h-5 w-5 text-[hsl(var(--warning-orange))]" viewBox="0 0 20 20" fill="currentColor">
+                          <svg className="h-5 w-5 text-warning" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
                         </div>
                         <div className="ml-3 flex-1">
-                          <p className="text-sm text-[hsl(var(--warning-orange))]">
+                          <p className="text-sm text-warning">
                             Ihre Email-Adresse ist noch nicht bestätigt. Wir senden Ihnen die Verifizierungs-Mail erneut.
                           </p>
                         </div>
-                        <button
+                        <Button
                           type="button"
                           onClick={handleResendVerification}
                           disabled={isSaving}
-                          className="ml-3 mt-2 rounded bg-[hsl(var(--warning-orange))/0.16] px-3 py-1 text-sm font-medium text-[hsl(var(--warning-orange))] transition-colors hover:bg-[hsl(var(--warning-orange))/0.24] disabled:opacity-50 sm:mt-0"
+                          variant="outline"
+                          size="sm"
+                          className="ml-3 mt-2 sm:mt-0"
                         >
                           Email erneut senden
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-4">Persönliche Informationen</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Persönliche Informationen</h3>
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="sm:col-span-2">
-                      <label htmlFor="name" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                      <label htmlFor="name" className="block text-sm font-medium text-muted-foreground">
                         Name
                       </label>
-                      <input
+                      <Input
                         type="text"
                         id="name"
                         name="name"
                         value={profile.name || ''}
                         onChange={handleChange}
-                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
+                        className="mt-1"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end">
-                  <button
+                  <Button
                     type="submit"
                     disabled={isSaving}
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-semibold rounded-md text-[hsl(var(--primary-foreground))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {isSaving ? 'Wird gespeichert...' : 'Profil speichern'}
-                  </button>
+                  </Button>
                 </div>
               </form>
             )}
@@ -483,63 +488,62 @@ export default function ProfilePage() {
             {activeTab === 'password' && (
               <form onSubmit={handlePasswordSubmit} className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-4">Passwort ändern</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Passwort ändern</h3>
                   <div className="space-y-4">
                     <div>
-                      <label htmlFor="oldPassword" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                      <label htmlFor="oldPassword" className="block text-sm font-medium text-muted-foreground">
                         Aktuelles Passwort
                       </label>
-                      <input
+                      <Input
                         type="password"
                         id="oldPassword"
                         name="oldPassword"
                         value={passwordData.oldPassword}
                         onChange={handlePasswordChange}
                         required
-                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
+                        className="mt-1"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="newPassword1" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                      <label htmlFor="newPassword1" className="block text-sm font-medium text-muted-foreground">
                         Neues Passwort
                       </label>
-                      <input
+                      <Input
                         type="password"
                         id="newPassword1"
                         name="newPassword1"
                         value={passwordData.newPassword1}
                         onChange={handlePasswordChange}
                         required
-                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
+                        className="mt-1"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="newPassword2" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                      <label htmlFor="newPassword2" className="block text-sm font-medium text-muted-foreground">
                         Neues Passwort bestätigen
                       </label>
-                      <input
+                      <Input
                         type="password"
                         id="newPassword2"
                         name="newPassword2"
                         value={passwordData.newPassword2}
                         onChange={handlePasswordChange}
                         required
-                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
+                        className="mt-1"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end">
-                  <button
+                  <Button
                     type="submit"
                     disabled={isSaving}
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-semibold rounded-md text-[hsl(var(--primary-foreground))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {isSaving ? 'Wird gespeichert...' : 'Passwort ändern'}
-                  </button>
+                  </Button>
                 </div>
               </form>
             )}
@@ -548,59 +552,57 @@ export default function ProfilePage() {
             {activeTab === 'transcription' && (
               <form onSubmit={handleTranscriptionSave} className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-[hsl(var(--foreground))] mb-4">Voxtral-Verbindung</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Voxtral-Verbindung</h3>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      transcriptionStatus.status === 'ok' ? 'bg-[hsl(var(--success-green))/0.16] text-[hsl(var(--success-green))]' : 'bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))]'
-                    }`}>
+                    <Badge variant={transcriptionStatus.status === 'ok' ? 'status-success' : 'status-muted'}>
                       Status: {transcriptionStatus.status}
-                    </span>
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))]">
+                    </Badge>
+                    <Badge variant="status-muted">
                       Modell: {transcriptionStatus.model}
-                    </span>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      transcriptionStatus.haveKey ? 'bg-[hsl(var(--success-green))/0.16] text-[hsl(var(--success-green))]' : 'bg-[hsl(var(--warning-orange))/0.16] text-[hsl(var(--warning-orange))]'
-                    }`}>
+                    </Badge>
+                    <Badge variant={transcriptionStatus.haveKey ? 'status-success' : 'status-warning'}>
                       API-Key: {transcriptionStatus.haveKey ? 'aktiv' : 'fehlt'}
-                    </span>
-                    <button
+                    </Badge>
+                    <Button
                       type="button"
                       onClick={refreshTranscriptionStatus}
-                      className="ml-auto inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))/0.35]"
+                      variant="outline"
+                      size="sm"
+                      className="ml-auto"
                     >
                       Status prüfen
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div className="sm:col-span-2">
-                      <label htmlFor="backendUrl" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                      <label htmlFor="backendUrl" className="block text-sm font-medium text-muted-foreground">
                         Service-URL
                       </label>
-                      <input
+                      <Input
                         type="url"
                         id="backendUrl"
                         name="backendUrl"
                         value={transcriptionSettings.backendUrl}
                         onChange={handleTranscriptionSettingsChange}
-                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
+                        className="mt-1"
                       />
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label htmlFor="apiKey" className="block text-sm font-medium text-[hsl(var(--muted-foreground))]">
+                      <label htmlFor="apiKey" className="block text-sm font-medium text-muted-foreground">
                         API-Key
                       </label>
-                      <input
+                      <Input
                         type="password"
                         id="apiKey"
                         name="apiKey"
                         value={transcriptionSettings.apiKey}
                         onChange={handleTranscriptionSettingsChange}
                         placeholder="API-Key einfügen"
-                        className="mt-1 block w-full border border-[hsl(var(--border))] rounded-md shadow-sm px-3 py-2 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.15)] transition-colors"
+                        className="mt-1"
                       />
-                      <p className="mt-2 text-xs text-[hsl(var(--muted-foreground))]">
+                      <p className="mt-2 text-xs text-muted-foreground">
                         Wird verschlüsselt gespeichert und nur für die Transkription verwendet.
                       </p>
                     </div>
@@ -608,19 +610,18 @@ export default function ProfilePage() {
                 </div>
 
                 {transcriptionError && (
-                  <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  <div className="rounded-md border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                     {transcriptionError}
                   </div>
                 )}
 
                 <div className="flex justify-end">
-                  <button
+                  <Button
                     type="submit"
                     disabled={transcriptionSaving || !transcriptionDirty}
-                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-semibold rounded-md text-[hsl(var(--primary-foreground))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {transcriptionSaving ? 'Wird gespeichert...' : 'Einstellungen speichern'}
-                  </button>
+                  </Button>
                 </div>
               </form>
             )}

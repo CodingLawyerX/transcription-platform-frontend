@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface LoginFormProps {
   callbackUrl?: string;
@@ -80,13 +81,13 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
   };
 
   return (
-    <div className="min-h-screen bg-bg text-text relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(59,130,246,0.14),transparent_45%),radial-gradient(circle_at_85%_25%,rgba(148,163,184,0.2),transparent_45%),radial-gradient(circle_at_70%_80%,rgba(30,64,175,0.12),transparent_40%)]" />
-      <div className="absolute right-[-8%] top-12 h-72 w-72 rounded-full bg-[rgba(59,130,246,0.18)] blur-3xl animate-float" />
-      <div className="absolute left-[-10%] bottom-10 h-80 w-80 rounded-full bg-[rgba(148,163,184,0.18)] blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      <div className="absolute inset-0 bg-auth-glow" />
+      <div className="absolute right-[-8%] top-12 h-72 w-72 rounded-full bg-primary/20 blur-3xl animate-float" />
+      <div className="absolute left-[-10%] bottom-10 h-80 w-80 rounded-full bg-muted/40 blur-3xl animate-float" style={{ animationDelay: '2s' }} />
 
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-md border-[hsl(var(--border))] bg-[hsl(var(--card))/0.92] shadow-soft">
+        <Card className="w-full max-w-md border-border bg-card/90 shadow-soft">
           <CardHeader className="space-y-2 text-center">
             <CardTitle className="text-2xl font-semibold">Anmelden</CardTitle>
             <CardDescription>
@@ -96,7 +97,7 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
           <CardContent>
             <form className="space-y-5" onSubmit={handleSubmit}>
               {errors.length > 0 && (
-                <div className="rounded-lg border border-[hsl(var(--destructive))/0.25] bg-[hsl(var(--destructive))/0.08] px-4 py-3 text-sm text-[hsl(var(--destructive))]">
+                <div className="rounded-lg border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                   <ul className="list-disc list-inside space-y-1">
                     {errors.map((error, index) => (
                       <li key={index}>{error}</li>
@@ -106,15 +107,14 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
               )}
 
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium text-muted-strong">
+                <label htmlFor="email" className="text-sm font-medium text-muted-foreground">
                   Email-Adresse
                 </label>
-                <input
+                <Input
                   id="email"
                   name="email"
                   type="email"
                   required
-                  className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-3 text-sm text-text shadow-sm transition focus:border-[hsl(var(--ring))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))/0.2]"
                   placeholder="name@unternehmen.de"
                   value={formData.email}
                   onChange={handleChange}
@@ -123,15 +123,14 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-medium text-muted-strong">
+                <label htmlFor="password" className="text-sm font-medium text-muted-foreground">
                   Passwort
                 </label>
-                <input
+                <Input
                   id="password"
                   name="password"
                   type="password"
                   required
-                  className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-3 text-sm text-text shadow-sm transition focus:border-[hsl(var(--ring))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))/0.2]"
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
@@ -143,8 +142,8 @@ export default function LoginForm({ callbackUrl }: LoginFormProps) {
                 {isLoading ? 'Anmeldung läuft …' : 'Anmelden'}
               </Button>
 
-              <div className="flex flex-col gap-2 text-center text-sm text-muted-strong">
-                <Link href="/forgot-password" className="hover:text-text">
+              <div className="flex flex-col gap-2 text-center text-sm text-muted-foreground">
+                <Link href="/forgot-password" className="hover:text-foreground">
                   Passwort vergessen?
                 </Link>
                 <span>

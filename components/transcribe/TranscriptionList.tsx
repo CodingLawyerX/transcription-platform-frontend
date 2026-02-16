@@ -62,18 +62,18 @@ export default function TranscriptionList() {
     });
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string): React.ComponentProps<typeof Badge>['variant'] => {
     switch (status) {
       case 'completed':
-        return 'bg-[hsl(var(--success-green))/0.14] text-[hsl(var(--success-green))] border-[hsl(var(--success-green))/0.3]';
+        return 'status-success';
       case 'processing':
-        return 'bg-[hsl(var(--primary))/0.12] text-[hsl(var(--primary))] border-[hsl(var(--primary))/0.25]';
+        return 'status-primary';
       case 'pending':
-        return 'bg-[hsl(var(--warning-orange))/0.12] text-[hsl(var(--warning-orange))] border-[hsl(var(--warning-orange))/0.3]';
+        return 'status-warning';
       case 'failed':
-        return 'bg-[hsl(var(--recording-red))/0.12] text-[hsl(var(--recording-red))] border-[hsl(var(--recording-red))/0.3]';
+        return 'status-error';
       default:
-        return 'bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] border-[hsl(var(--border))]';
+        return 'status-muted';
     }
   };
 
@@ -130,7 +130,7 @@ export default function TranscriptionList() {
                     {formatDate(transcription.created_at)}
                   </CardDescription>
                 </div>
-                <Badge className={`${getStatusColor(transcription.status)} font-medium`}>
+                <Badge variant={getStatusVariant(transcription.status)} className="font-medium">
                   {transcription.status === 'completed' ? 'Fertig' :
                    transcription.status === 'processing' ? 'Verarbeitung' :
                    transcription.status === 'pending' ? 'Ausstehend' : 'Fehlgeschlagen'}
@@ -159,7 +159,7 @@ export default function TranscriptionList() {
                   <span className="font-medium">{transcription.model_name}</span>
                 </div>
                 {transcription.error_message && (
-                  <div className="mt-2 rounded border border-[hsl(var(--recording-red))/0.2] bg-[hsl(var(--recording-red))/0.08] p-2 text-sm text-[hsl(var(--recording-red))]">
+                  <div className="mt-2 rounded border border-recording/20 bg-recording/10 p-2 text-sm text-recording">
                     <strong>Fehler:</strong> {transcription.error_message}
                   </div>
                 )}

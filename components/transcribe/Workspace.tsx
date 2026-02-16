@@ -63,25 +63,25 @@ export default function Workspace({
 
   const statusToneClass = useMemo(() => {
     if (!statusMessage) return '';
-    if (statusMessage.tone === 'success') return 'text-[hsl(var(--success-green))]';
-    if (statusMessage.tone === 'error') return 'text-[hsl(var(--recording-red))]';
-    return 'text-[hsl(var(--muted-foreground))]';
+    if (statusMessage.tone === 'success') return 'text-success';
+    if (statusMessage.tone === 'error') return 'text-recording';
+    return 'text-muted-foreground';
   }, [statusMessage]);
 
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+          <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
             Transkription
           </span>
         </div>
-        <span className="text-[11px] text-[hsl(var(--muted-foreground))]">
+        <span className="text-xs text-muted-foreground">
           {wordCount} {wordCount === 1 ? 'Wort' : 'Wörter'}
         </span>
       </div>
 
-      <div className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]">
+      <div className="rounded-[var(--radius)] border border-border bg-card p-3 shadow-inset-soft">
         <textarea
           ref={textareaRef}
           value={transcript}
@@ -92,12 +92,12 @@ export default function Workspace({
           onSelect={handleTextareaInteraction}
           onInput={handleTextareaInteraction}
           placeholder="Transkription erscheint hier …"
-          className="dictation-scroll min-h-[220px] w-full resize-y border-0 bg-transparent text-[14px] leading-6 text-[hsl(var(--foreground))] outline-none placeholder:text-[hsl(var(--muted-foreground))]"
+          className="dictation-scroll min-h-[420px] w-full resize-y border-0 bg-transparent text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground"
         />
       </div>
 
       {statusMessage?.text && (
-        <div className={`text-[12px] ${statusToneClass}`}>
+        <div className={`text-xs ${statusToneClass}`}>
           {statusMessage.text}
         </div>
       )}

@@ -1,21 +1,21 @@
 import type { Metadata } from 'next'
-import { Sora, Fraunces } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from './SessionProvider'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import { dictationCssVars } from '@/lib/design-tokens'
 
-const sora = Sora({
+const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
   weight: ['300', '400', '500', '600', '700'],
 })
 
-const fraunces = Fraunces({
+const interSerif = Inter({
   subsets: ['latin'],
   variable: '--font-serif',
-  weight: ['400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700'],
 })
 
 export const metadata: Metadata = {
@@ -37,10 +37,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de">
-      <body className={`${sora.variable} ${fraunces.variable} font-sans`}>
+      <body className={`${inter.variable} ${interSerif.variable} font-sans`}>
         <SessionProvider>
           <div
-            className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]"
+            className="min-h-screen bg-background text-foreground"
             style={dictationCssVars}
           >
             <Navigation />

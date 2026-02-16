@@ -47,8 +47,6 @@
 
   body {
     margin: 0;
-    background: theme('colors.bg');
-    color: theme('colors.text');
   }
   .dark {
     --background: 222 30% 10%;
@@ -82,73 +80,6 @@
 }
 
 @layer components {
-  /* Status indicators */
-  .status-muted {
-    @apply text-muted;
-  }
-
-  .status-busy {
-    @apply text-primary-dark font-medium;
-  }
-
-  .status-success {
-    @apply text-success font-medium;
-  }
-
-  .status-error {
-    @apply text-error font-medium;
-  }
-
-  /* Buttons */
-  .btn {
-    @apply inline-flex items-center justify-center gap-2.5 rounded-full border-0 cursor-pointer text-sm font-semibold px-5 py-3 transition-all duration-150;
-  }
-
-  .btn:disabled {
-    @apply opacity-50 cursor-not-allowed;
-  }
-
-  .btn-primary {
-    @apply bg-gradient-primary text-white shadow-[0_16px_36px_rgba(37,99,235,0.26)];
-  }
-
-  .btn-primary:hover:not(:disabled) {
-    @apply -translate-y-0.5 shadow-[0_22px_42px_rgba(37,99,235,0.32)];
-  }
-
-  .btn-outline {
-    @apply bg-primary/[0.08] text-primary;
-  }
-
-  .btn-outline:hover:not(:disabled) {
-    @apply bg-primary/[0.12] -translate-y-0.5 shadow-[0_8px_18px_rgba(37,99,235,0.18)];
-  }
-
-  .btn-ghost {
-    @apply bg-card/[0.9] border border-border text-muted-strong;
-  }
-
-  .btn-ghost:hover:not(:disabled) {
-    @apply -translate-y-0.5 shadow-[0_10px_20px_rgba(30,64,175,0.14)];
-  }
-
-  /* Status pills */
-  .status-pill {
-    @apply inline-flex items-center justify-start px-3 py-1.5 rounded-full text-xs font-semibold bg-primary/[0.12] text-primary tracking-wide;
-  }
-
-  .status-pill-muted {
-    @apply bg-[rgba(46,72,121,0.1)] text-muted-strong;
-  }
-
-  .status-pill-success {
-    @apply bg-success/[0.18] text-success;
-  }
-
-  .status-pill-error {
-    @apply bg-error/[0.16] text-error;
-  }
-
   .grain {
     position: relative;
   }

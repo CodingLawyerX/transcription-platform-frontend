@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import { Button } from '@/components/ui/button';
 
 export default function Navigation() {
   const { data: session, status } = useSession();
@@ -16,11 +17,11 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-[hsl(var(--border))] bg-[var(--glass-bg)] backdrop-blur-xl">
+    <nav className="sticky top-0 z-50 border-b border-border bg-[var(--glass-bg)] backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] shadow-[0_6px_16px_hsl(var(--primary)/0.25)]">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-primary shadow-primary-soft">
               <Image
                 src="/assets/simpliant-icon.svg"
                 alt="Simpliant"
@@ -30,27 +31,27 @@ export default function Navigation() {
                 priority
               />
             </span>
-            <span className="text-lg font-semibold tracking-tight text-[hsl(var(--foreground))]">
+            <span className="text-lg font-semibold tracking-tight text-foreground">
               Simpliant Transcribe
             </span>
           </Link>
-          <div className="hidden items-center gap-4 text-sm font-medium text-[hsl(var(--muted-foreground))] sm:flex">
+          <div className="hidden items-center gap-4 text-sm font-medium text-muted-foreground sm:flex">
             <Link
-              className={`transition-colors hover:text-[hsl(var(--foreground))] ${pathname === '/' ? 'text-[hsl(var(--foreground))]' : ''}`}
+              className={`transition-colors hover:text-foreground ${pathname === '/' ? 'text-foreground' : ''}`}
               href="/"
               aria-current={pathname === '/' ? 'page' : undefined}
             >
               Start
             </Link>
             <Link
-              className={`transition-colors hover:text-[hsl(var(--foreground))] ${pathname === '/transcribe' ? 'text-[hsl(var(--foreground))]' : ''}`}
+              className={`transition-colors hover:text-foreground ${pathname === '/transcribe' ? 'text-foreground' : ''}`}
               href="/transcribe"
               aria-current={pathname === '/transcribe' ? 'page' : undefined}
             >
               Workspace
             </Link>
             <Link
-              className={`transition-colors hover:text-[hsl(var(--foreground))] ${pathname === '/profile' ? 'text-[hsl(var(--foreground))]' : ''}`}
+              className={`transition-colors hover:text-foreground ${pathname === '/profile' ? 'text-foreground' : ''}`}
               href="/profile"
               aria-current={pathname === '/profile' ? 'page' : undefined}
             >
@@ -61,36 +62,24 @@ export default function Navigation() {
 
         <div className="flex items-center gap-3">
           {isLoading ? (
-            <div className="text-sm text-[hsl(var(--muted-foreground))]">Lade…</div>
+            <div className="text-sm text-muted-foreground">Lade…</div>
           ) : isLoggedIn ? (
             <>
-              <Link
-                href="/profile"
-                className="hidden rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:border-[hsl(var(--primary))/0.35] sm:inline-flex"
-              >
-                Profil
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="rounded-full px-4 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] shadow-[0_6px_16px_hsl(var(--primary)/0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)]"
-              >
+              <Button variant="outline" size="sm" asChild className="hidden rounded-full sm:inline-flex">
+                <Link href="/profile">Profil</Link>
+              </Button>
+              <Button onClick={handleLogout} size="sm" className="rounded-full">
                 Abmelden
-              </button>
+              </Button>
             </>
           ) : (
             <>
-              <Link
-                href="/login"
-                className="rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:border-[hsl(var(--primary))/0.35]"
-              >
-                Anmelden
-              </Link>
-              <Link
-                href="/register"
-                className="rounded-full px-4 py-2 text-sm font-semibold text-[hsl(var(--primary-foreground))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] shadow-[0_6px_16px_hsl(var(--primary)/0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_20px_hsl(var(--primary)/0.3)]"
-              >
-                Registrieren
-              </Link>
+              <Button variant="outline" size="sm" asChild className="rounded-full">
+                <Link href="/login">Anmelden</Link>
+              </Button>
+              <Button size="sm" asChild className="rounded-full">
+                <Link href="/register">Registrieren</Link>
+              </Button>
             </>
           )}
         </div>

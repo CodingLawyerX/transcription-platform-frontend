@@ -30,6 +30,7 @@ export default function TranscriptionStudio() {
   const [connectionReady, setConnectionReady] = useState(false);
   const [language, setLanguage] = useState('auto');
   const [feedback, setFeedback] = useState<{ text: string; tone: 'success' | 'error' | 'muted' } | null>(null);
+  const [activePanel, setActivePanel] = useState<'record' | 'upload'>('record');
   
   // Cursor and selection state
   const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -148,13 +149,13 @@ export default function TranscriptionStudio() {
 
   return (
     <div
-      className="min-h-screen bg-[radial-gradient(120%_80%_at_50%_0%,hsl(var(--primary)/0.12),transparent_60%),hsl(var(--background))] text-[hsl(var(--foreground))]"
+      className="min-h-screen bg-studio-radial text-foreground"
       style={dictationCssVars}
     >
       <div className="mx-auto flex min-h-screen w-full max-w-[420px] flex-col">
         <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-3 backdrop-blur-xl">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] text-[12px] font-bold text-white shadow-[0_2px_8px_hsl(var(--primary)/0.2)]">
+            <div className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-gradient-primary text-xs font-bold text-white shadow-primary-soft">
               <Image
                 src="/assets/simpliant-icon.svg"
                 alt="Simpliant"
@@ -164,12 +165,12 @@ export default function TranscriptionStudio() {
                 priority
               />
             </div>
-            <span className="text-[14px] font-semibold tracking-[-0.3px]">Simpliant Transcribe</span>
+            <span className="text-sm font-semibold tracking-[-0.3px]">Simpliant Transcribe</span>
           </div>
 
           <div className="flex items-center gap-2">
             <div className="relative">
-              <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-[hsl(var(--muted-foreground))]">
+              <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-muted-foreground">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
                   <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -178,7 +179,7 @@ export default function TranscriptionStudio() {
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="max-w-[132px] appearance-none rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] py-1.5 pl-7 pr-6 text-[11px] font-semibold text-[hsl(var(--foreground))] transition-colors focus:outline-none focus:border-[hsl(var(--ring))]"
+                className="max-w-[132px] appearance-none rounded-[calc(var(--radius)-2px)] border border-border bg-secondary py-1.5 pl-7 pr-6 text-xs font-semibold text-foreground transition-colors focus:outline-none focus:border-ring focus:ring-2 focus:ring-ring/20"
               >
                 {TRANSCRIBE_LANGUAGE_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -189,7 +190,7 @@ export default function TranscriptionStudio() {
             </div>
             <button
               onClick={handleInsertIntoWord}
-              className="flex h-8 w-8 items-center justify-center rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--primary))/0.4] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_6px_16px_hsl(var(--primary)/0.3)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_20px_hsl(var(--primary)/0.35)]"
+              className="flex h-8 w-8 items-center justify-center rounded-[calc(var(--radius)-2px)] border border-primary/40 bg-primary text-primary-foreground shadow-primary-soft transition hover:-translate-y-0.5 hover:shadow-primary-strong"
               aria-label="In Word einfuegen"
               title="In Word einfuegen"
             >
@@ -200,7 +201,7 @@ export default function TranscriptionStudio() {
             </button>
             <button
               onClick={handleCopyTranscript}
-              className="flex h-8 w-8 items-center justify-center rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] transition hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))/0.35]"
+              className="flex h-8 w-8 items-center justify-center rounded-[calc(var(--radius)-2px)] border border-border bg-card text-muted-foreground transition hover:text-foreground hover:border-primary/35"
               aria-label="Kopieren"
               title="Kopieren"
             >
@@ -211,7 +212,7 @@ export default function TranscriptionStudio() {
             </button>
             <button
               onClick={handleClearTranscript}
-              className="flex h-8 w-8 items-center justify-center rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] transition hover:text-[hsl(var(--recording-red))] hover:border-[hsl(var(--recording-red))/0.4]"
+              className="flex h-8 w-8 items-center justify-center rounded-[calc(var(--radius)-2px)] border border-border bg-card text-muted-foreground transition hover:text-recording hover:border-recording/40"
               aria-label="Leeren"
               title="Leeren"
             >
@@ -227,46 +228,92 @@ export default function TranscriptionStudio() {
         </header>
 
         <main className="flex flex-1 flex-col gap-4 px-4 py-5">
-          <section className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
-            <AudioRecorder
-              apiBaseUrl={apiBaseUrl}
-              authToken={authToken}
-              language={language}
+          <section className="order-2 rounded-[var(--radius)] border border-border bg-card p-4 shadow-panel">
+            <Workspace
               transcript={transcript}
+              metadata={metadata}
               onTranscriptChange={handleTranscriptChange}
-              onMetadataChange={setMetadata}
-              cursorPosition={cursorPosition}
-              selectedText={selectedText}
-              className="border-0 bg-transparent p-0 shadow-none"
-            />
-            <div className="my-4 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
-              <span className="h-px flex-1 bg-[hsl(var(--border))]" />
-              <span>Upload</span>
-              <span className="h-px flex-1 bg-[hsl(var(--border))]" />
-            </div>
-            <AudioUploader
-              apiBaseUrl={apiBaseUrl}
-              authToken={authToken}
-              connectionReady={connectionReady}
-              transcript={transcript}
-              language={language}
-              onLanguageChange={setLanguage}
-              onTranscriptChange={handleTranscriptChange}
-              onMetadataChange={setMetadata}
-              cursorPosition={cursorPosition}
-              selectedText={selectedText}
-              className="border-0 bg-transparent p-0 shadow-none"
+              statusMessage={feedback ?? undefined}
+              onCursorPositionChange={setCursorPosition}
+              onSelectedTextChange={setSelectedText}
             />
           </section>
 
-          <Workspace
-            transcript={transcript}
-            metadata={metadata}
-            onTranscriptChange={handleTranscriptChange}
-            statusMessage={feedback ?? undefined}
-            onCursorPositionChange={setCursorPosition}
-            onSelectedTextChange={setSelectedText}
-          />
+          <section className="order-1 rounded-[var(--radius)] border border-border bg-card p-4 shadow-panel">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  Status
+                </span>
+                <span className="text-sm font-semibold text-foreground">
+                  {metadata.status || 'Bereit'}
+                </span>
+              </div>
+              <div className="flex flex-col text-right">
+                <span className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  Modell
+                </span>
+                <span className="text-sm font-semibold text-foreground">
+                  {metadata.model || '–'}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setActivePanel('record')}
+                className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                  activePanel === 'record'
+                    ? 'bg-primary text-primary-foreground shadow-primary-soft'
+                    : 'bg-secondary text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Live aufnehmen
+              </button>
+              <button
+                type="button"
+                onClick={() => setActivePanel('upload')}
+                className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                  activePanel === 'upload'
+                    ? 'bg-primary text-primary-foreground shadow-primary-soft'
+                    : 'bg-secondary text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Audio hochladen
+              </button>
+            </div>
+
+            <div className="mt-4">
+              {activePanel === 'record' ? (
+                <AudioRecorder
+                  apiBaseUrl={apiBaseUrl}
+                  authToken={authToken}
+                  language={language}
+                  transcript={transcript}
+                  onTranscriptChange={handleTranscriptChange}
+                  onMetadataChange={setMetadata}
+                  cursorPosition={cursorPosition}
+                  selectedText={selectedText}
+                  className="border-0 bg-transparent p-0 shadow-none"
+                />
+              ) : (
+                <AudioUploader
+                  apiBaseUrl={apiBaseUrl}
+                  authToken={authToken}
+                  connectionReady={connectionReady}
+                  transcript={transcript}
+                  language={language}
+                  onLanguageChange={setLanguage}
+                  onTranscriptChange={handleTranscriptChange}
+                  onMetadataChange={setMetadata}
+                  cursorPosition={cursorPosition}
+                  selectedText={selectedText}
+                  className="border-0 bg-transparent p-0 shadow-none"
+                />
+              )}
+            </div>
+          </section>
         </main>
       </div>
     </div>

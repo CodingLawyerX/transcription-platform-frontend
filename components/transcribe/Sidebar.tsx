@@ -63,7 +63,7 @@ export default function Sidebar({
         selectedText={selectedText}
       />
 
-      <section className="text-[13px] leading-relaxed text-muted bg-primary/[0.06] border border-[rgba(46,72,121,0.05)] rounded-xl p-5">
+      <section className="text-sm leading-relaxed text-muted bg-primary/10 border border-border/40 rounded-xl p-5">
         <p className="m-0">
           Der Dienst erlaubt 5 Requests pro Minute (Burst 10). Unterstützte Formate: MP3, M4A, WAV, FLAC, OGG, WebM bis 50&nbsp;MB.
         </p>
