@@ -97,7 +97,7 @@ const config: Config = {
 			'auth-glow': 'radial-gradient(circle_at_15%_20%, hsl(var(--primary) / 0.14), transparent 45%), radial-gradient(circle_at_85%_25%, hsl(var(--muted-foreground) / 0.2), transparent 45%), radial-gradient(circle_at_70%_80%, hsl(var(--primary) / 0.12), transparent 40%)',
 			'profile-header': 'linear-gradient(120deg, hsl(var(--primary) / 0.16), hsl(var(--primary) / 0.06))',
 			'studio-radial': 'radial-gradient(120%_80%_at_50%_0%, hsl(var(--primary) / 0.12), transparent 60%), linear-gradient(hsl(var(--background)), hsl(var(--background)))',
-			'hero-waves': 'linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(56, 189, 248, 0.08) 50%, rgba(148, 163, 184, 0.08) 100%)'
+			'hero-subtle': 'radial-gradient(600px 260px at 28% 22%, rgba(59, 111, 245, 0.05), transparent 70%)'
 		},
   		keyframes: {
   			float: {

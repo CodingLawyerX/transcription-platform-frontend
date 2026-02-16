@@ -166,6 +166,30 @@
   .animate-fade-in {
     animation: fade-in 0.8s ease-out both;
   }
+
+  @keyframes waveform {
+    0% {
+      transform: scaleY(0.35);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+    100% {
+      transform: scaleY(0.45);
+    }
+  }
+
+  .waveform-bar {
+    transform-origin: center bottom;
+    transform-box: fill-box;
+    animation: waveform 5.6s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .waveform-bar {
+      animation: none;
+    }
+  }
 }
 
 
