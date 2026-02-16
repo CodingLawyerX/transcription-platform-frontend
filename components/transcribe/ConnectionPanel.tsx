@@ -73,7 +73,7 @@ export default function ConnectionPanel({
   };
 
   return (
-    <section className="bg-[rgba(248,250,255,0.7)] border border-[rgba(46,72,121,0.06)] rounded-2xl p-4 flex flex-col gap-3">
+    <section className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))/0.92] p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
         <h2 className="m-0 text-sm font-semibold text-muted-strong tracking-wide">
           Verbindung
@@ -113,7 +113,7 @@ export default function ConnectionPanel({
         {pingStatus}
       </span>
 
-      <details className="group rounded-xl border border-[rgba(46,72,121,0.08)] bg-white/80 px-4 py-3">
+      <details className="group rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] px-4 py-3">
         <summary className="cursor-pointer list-none text-[13px] font-semibold text-muted-strong tracking-wide">
           Verbindungseinstellungen
         </summary>
@@ -128,7 +128,7 @@ export default function ConnectionPanel({
               value={backendUrl}
               onChange={(e) => onBackendUrlChange(e.target.value)}
               placeholder="https://transcribe.simpliant-ds.eu"
-              className="px-3.5 py-2.5 rounded-xl border border-[rgba(35,62,112,0.22)] text-[15px] bg-white/95 transition-all duration-200 focus:outline-none focus:border-primary/60 focus:shadow-[0_0_0_4px_rgba(47,74,203,0.18)]"
+              className="px-3.5 py-2.5 rounded-xl border border-[hsl(var(--border))] text-[15px] bg-[hsl(var(--card))] transition-all duration-200 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_4px_hsl(var(--ring)/0.16)]"
             />
           </label>
 
@@ -141,7 +141,7 @@ export default function ConnectionPanel({
               value={apiKey}
               onChange={(e) => onApiKeyChange(e.target.value)}
               placeholder="API-Key einfügen"
-              className="px-3.5 py-2.5 rounded-xl border border-[rgba(35,62,112,0.22)] text-[15px] bg-white/95 transition-all duration-200 focus:outline-none focus:border-primary/60 focus:shadow-[0_0_0_4px_rgba(47,74,203,0.18)]"
+              className="px-3.5 py-2.5 rounded-xl border border-[hsl(var(--border))] text-[15px] bg-[hsl(var(--card))] transition-all duration-200 focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_4px_hsl(var(--ring)/0.16)]"
             />
           </label>
 

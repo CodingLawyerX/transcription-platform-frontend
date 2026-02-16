@@ -66,7 +66,7 @@ export default function Navigation() {
             <>
               <Link
                 href="/profile"
-                className="hidden rounded-full border border-[hsl(var(--border))] bg-white px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:border-[hsl(var(--primary))/0.35] sm:inline-flex"
+                className="hidden rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:border-[hsl(var(--primary))/0.35] sm:inline-flex"
               >
                 Profil
               </Link>
@@ -81,7 +81,7 @@ export default function Navigation() {
             <>
               <Link
                 href="/login"
-                className="rounded-full border border-[hsl(var(--border))] bg-white px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:border-[hsl(var(--primary))/0.35]"
+                className="rounded-full border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-2 text-sm font-semibold text-[hsl(var(--foreground))] transition hover:border-[hsl(var(--primary))/0.35]"
               >
                 Anmelden
               </Link>

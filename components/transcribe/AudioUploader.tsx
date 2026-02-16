@@ -229,7 +229,7 @@ export default function AudioUploader({
   };
 
   return (
-    <section className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] p-4 flex flex-col gap-3 shadow-[inset_0_1px_2px_rgba(0,0,0,0.05)]">
+    <section className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 flex flex-col gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
       <div className="flex items-center justify-between">
         <h2 className="m-0 text-[12px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
           Audio-Upload
@@ -247,7 +247,7 @@ export default function AudioUploader({
         className={`rounded-[calc(var(--radius)+4px)] border border-dashed px-4 py-4 text-center text-[13px] text-[hsl(var(--muted-foreground))] transition-all ${
           isDragging
             ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary))]/10'
-            : 'border-[hsl(var(--border))] bg-white/70 hover:bg-white'
+            : 'border-[hsl(var(--border))] bg-[hsl(var(--secondary))] hover:bg-[hsl(var(--secondary))/0.8]'
         }`}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
@@ -277,7 +277,7 @@ export default function AudioUploader({
           <select
             value={language}
             onChange={(e) => onLanguageChange(e.target.value)}
-            className="w-full rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--border))] bg-white px-3 py-2 text-[13px] font-medium text-[hsl(var(--foreground))] appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2712%27%20height=%278%27%20fill=%27none%27%3E%3Cpath%20stroke=%27%2353648f%27%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%20stroke-width=%271.5%27%20d=%27m1%201.5%205%205%205-5%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_12px_center] transition-all focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.12)]"
+            className="w-full rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] px-3 py-2 text-[13px] font-medium text-[hsl(var(--foreground))] appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%2712%27%20height=%278%27%20fill=%27none%27%3E%3Cpath%20stroke=%27%2353648f%27%20stroke-linecap=%27round%27%20stroke-linejoin=%27round%27%20stroke-width=%271.5%27%20d=%27m1%201.5%205%205%205-5%27/%3E%3C/svg%3E')] bg-no-repeat bg-[right_12px_center] transition-all focus:outline-none focus:border-[hsl(var(--ring))] focus:shadow-[0_0_0_3px_hsl(var(--ring)/0.12)]"
           >
             {TRANSCRIBE_LANGUAGE_OPTIONS.map((lang) => (
               <option key={lang.value} value={lang.value}>

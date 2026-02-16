@@ -428,7 +428,7 @@ export default function AudioRecorder({
       case 'error':
         return 'bg-[hsl(var(--recording-red))/0.12] text-[hsl(var(--recording-red))] border-[hsl(var(--recording-red))/0.3]';
       default:
-        return 'bg-[hsl(var(--success-green))/0.15] text-[hsl(var(--success-green))] border-[hsl(var(--success-green))/0.3]';
+        return 'bg-[hsl(var(--primary))/0.12] text-[hsl(var(--primary))] border-[hsl(var(--primary))/0.25]';
     }
   }, [statusBadge.tone]);
 

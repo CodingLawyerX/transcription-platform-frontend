@@ -268,7 +268,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))] px-4">
-        <div className="max-w-md w-full rounded-lg border border-[hsl(var(--border))] bg-white p-6 text-center shadow-sm">
+        <div className="max-w-md w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6 text-center shadow-sm">
           <h2 className="text-lg font-semibold text-[hsl(var(--foreground))]">Profil konnte nicht geladen werden</h2>
           <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">
             Bitte versuchen Sie es erneut oder melden Sie sich erneut an.
@@ -306,7 +306,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow rounded-2xl overflow-hidden border border-[hsl(var(--border))]">
+        <div className="rounded-2xl overflow-hidden border border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow">
           {/* Header mit Avatar */}
           <div className="bg-[linear-gradient(120deg,hsl(var(--primary)/0.16),hsl(var(--primary)/0.06))] px-6 py-6">
             <div className="flex flex-col sm:flex-row items-center gap-5">
@@ -323,7 +323,7 @@ export default function ProfilePage() {
                 <h1 className="text-2xl font-semibold text-[hsl(var(--foreground))]">{profile.username}</h1>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">{profile.email}</p>
                 <div className="mt-2 flex flex-wrap gap-2 justify-center sm:justify-start">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-[hsl(var(--muted-foreground))] border border-[hsl(var(--border))]">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] border border-[hsl(var(--border))]">
                     Profil
                   </span>
                   {profile.email_verified === false && (
@@ -363,23 +363,23 @@ export default function ProfilePage() {
           {/* Content */}
           <div className="p-6">
             {message && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
+              <div className="mb-6 rounded-md border border-[hsl(var(--success-green))/0.25] bg-[hsl(var(--success-green))/0.08] p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-5 w-5 text-[hsl(var(--success-green))]" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm text-green-700">{message}</p>
+                    <p className="text-sm text-[hsl(var(--success-green))]">{message}</p>
                   </div>
                 </div>
               </div>
             )}
 
             {errors.length > 0 && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-                <div className="text-sm text-red-700">
+              <div className="mb-6 rounded-md border border-[hsl(var(--destructive))/0.25] bg-[hsl(var(--destructive))/0.08] p-4">
+                <div className="text-sm text-[hsl(var(--destructive))]">
                   <ul className="list-disc list-inside space-y-1">
                     {errors.map((error, index) => (
                       <li key={index}>{error}</li>
@@ -423,15 +423,15 @@ export default function ProfilePage() {
                   </div>
 
                   {profile.email_verified === false && (
-                    <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                    <div className="mt-4 rounded-md border border-[hsl(var(--warning-orange))/0.25] bg-[hsl(var(--warning-orange))/0.08] p-4">
                       <div className="flex items-center flex-wrap">
                         <div className="flex-shrink-0">
-                          <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                          <svg className="h-5 w-5 text-[hsl(var(--warning-orange))]" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
                         </div>
                         <div className="ml-3 flex-1">
-                          <p className="text-sm text-yellow-700">
+                          <p className="text-sm text-[hsl(var(--warning-orange))]">
                             Ihre Email-Adresse ist noch nicht bestätigt. Wir senden Ihnen die Verifizierungs-Mail erneut.
                           </p>
                         </div>
@@ -439,7 +439,7 @@ export default function ProfilePage() {
                           type="button"
                           onClick={handleResendVerification}
                           disabled={isSaving}
-                          className="ml-3 mt-2 sm:mt-0 bg-yellow-100 text-yellow-800 px-3 py-1 rounded text-sm font-medium hover:bg-yellow-200 disabled:opacity-50 transition-colors"
+                          className="ml-3 mt-2 rounded bg-[hsl(var(--warning-orange))/0.16] px-3 py-1 text-sm font-medium text-[hsl(var(--warning-orange))] transition-colors hover:bg-[hsl(var(--warning-orange))/0.24] disabled:opacity-50 sm:mt-0"
                         >
                           Email erneut senden
                         </button>

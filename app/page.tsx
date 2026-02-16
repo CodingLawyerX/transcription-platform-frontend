@@ -86,7 +86,7 @@ export default function Home() {
         <div className="relative z-10 mx-auto max-w-6xl px-4 py-24 sm:px-6 lg:py-28 grain">
           <div className="grid items-center gap-16 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-8 animate-fade-up">
-              <Badge className="bg-white/80 text-[hsl(var(--foreground))] shadow-sm" variant="outline">
+              <Badge className="bg-[hsl(var(--card))/0.86] text-[hsl(var(--foreground))] shadow-sm" variant="outline">
                 Simpliant Transcribe · Word Add-in Ready
               </Badge>
               <h1 className="text-4xl font-semibold tracking-tight text-[hsl(var(--foreground))] sm:text-5xl lg:text-6xl">
@@ -99,17 +99,17 @@ export default function Home() {
               {cta}
               <div className="flex flex-wrap gap-6 text-sm text-[hsl(var(--muted-foreground))]">
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-[hsl(var(--success-green))]" />
+                  <span className="h-2 w-2 rounded-full bg-[hsl(var(--primary))]" />
                   DSGVO-konforme Datenhaltung
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-[hsl(var(--success-green))]" />
+                  <span className="h-2 w-2 rounded-full bg-[hsl(var(--primary))]" />
                   Word, Web & API in einem Flow
                 </div>
               </div>
             </div>
 
-            <Card className="border-[hsl(var(--border))] bg-white/90 shadow-soft animate-scale-in">
+            <Card className="border-[hsl(var(--border))] bg-[hsl(var(--card))/0.92] shadow-soft animate-scale-in">
               <CardContent className="space-y-8 p-8">
                 <div>
                   <p className="text-sm uppercase tracking-widest text-muted-foreground">
@@ -173,7 +173,7 @@ export default function Home() {
               text: 'Vom Einzelplatz bis Enterprise: automatische Skalierung und Teamverwaltung.',
             },
           ].map((item) => (
-            <Card key={item.title} className="border-[hsl(var(--border))] bg-white/95 shadow-[0_16px_30px_rgba(18,24,32,0.06)] transition-transform hover:-translate-y-1">
+            <Card key={item.title} className="border-[hsl(var(--border))] bg-[hsl(var(--card))/0.96] shadow-[0_16px_30px_rgba(18,24,32,0.06)] transition-transform hover:-translate-y-1">
               <CardContent className="space-y-3 p-6">
                 <h3 className="text-lg font-semibold text-[hsl(var(--foreground))]">{item.title}</h3>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">{item.text}</p>
@@ -186,7 +186,7 @@ export default function Home() {
       <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
         <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="space-y-6">
-            <Badge className="bg-white/80 text-[hsl(var(--foreground))] shadow-sm" variant="outline">
+            <Badge className="bg-[hsl(var(--card))/0.86] text-[hsl(var(--foreground))] shadow-sm" variant="outline">
               Workflow für Transkription
             </Badge>
             <h2 className="text-3xl font-semibold text-[hsl(var(--foreground))] sm:text-4xl">
@@ -219,7 +219,7 @@ export default function Home() {
             {['Upload', 'Verarbeitung', 'Review', 'Export'].map((step, index) => (
               <div
                 key={step}
-                className="rounded-2xl border border-[hsl(var(--border))] bg-white p-5 shadow-[0_16px_32px_rgba(29,36,43,0.08)] transition-transform hover:-translate-y-1"
+                className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 shadow-[0_16px_32px_rgba(29,36,43,0.08)] transition-transform hover:-translate-y-1"
               >
                 <p className="text-xs uppercase tracking-widest text-muted-foreground">
                   Schritt {index + 1}
@@ -241,7 +241,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
-        <div className="grid gap-8 rounded-3xl border border-[hsl(var(--border))] bg-white p-8 shadow-[0_22px_44px_rgba(18,24,32,0.08)] lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="grid gap-8 rounded-3xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-8 shadow-[0_22px_44px_rgba(18,24,32,0.08)] lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-4">
             <h2 className="text-3xl font-semibold text-[hsl(var(--foreground))]">Stimmen aus der Praxis</h2>
             <p className="text-base text-[hsl(var(--muted-foreground))]">
@@ -255,7 +255,7 @@ export default function Home() {
                   className={`w-full rounded-2xl border p-4 text-left transition ${
                     index === activeTestimonial
                       ? 'border-[hsl(var(--primary))/0.4] bg-[hsl(var(--primary))/0.08]'
-                      : 'border-[hsl(var(--border))] bg-white'
+                      : 'border-[hsl(var(--border))] bg-[hsl(var(--card))]'
                   }`}
                   onClick={() => setActiveTestimonial(index)}
                   aria-label={`Testimonial ${index + 1}`}
@@ -276,7 +276,7 @@ export default function Home() {
                 Audiodateien wurden im letzten Quartal verarbeitet.
               </p>
             </div>
-            <div className="rounded-2xl border border-[hsl(var(--border))] p-6">
+            <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-6">
               <p className="text-sm text-muted-foreground">SLA</p>
               <p className="mt-2 text-2xl font-semibold text-[hsl(var(--foreground))]">99.95%</p>
               <p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">

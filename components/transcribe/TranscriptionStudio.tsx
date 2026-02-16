@@ -117,8 +117,8 @@ export default function TranscriptionStudio() {
       className="min-h-screen bg-[radial-gradient(120%_80%_at_50%_0%,hsl(var(--primary)/0.12),transparent_60%),hsl(var(--background))] text-[hsl(var(--foreground))]"
       style={dictationCssVars}
     >
-      <div className="mx-auto flex min-h-screen w-full max-w-[420px] flex-col">
-        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-3 backdrop-blur-xl">
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col">
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-3 backdrop-blur-xl sm:px-6">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] text-[12px] font-bold text-white shadow-[0_2px_8px_hsl(var(--primary)/0.2)]">
               <Image
@@ -154,41 +154,43 @@ export default function TranscriptionStudio() {
           </div>
         </header>
 
-        <main className="flex flex-1 flex-col gap-5 px-4 py-5">
-          <AudioRecorder
-            apiBaseUrl={apiBaseUrl}
-            authToken={authToken}
-            language={language}
-            transcript={transcript}
-            onTranscriptChange={handleTranscriptChange}
-            onMetadataChange={setMetadata}
-            cursorPosition={cursorPosition}
-            selectedText={selectedText}
-          />
+        <main className="grid flex-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.25fr_0.75fr]">
+          <div className="flex flex-col gap-5">
+            <AudioRecorder
+              apiBaseUrl={apiBaseUrl}
+              authToken={authToken}
+              language={language}
+              transcript={transcript}
+              onTranscriptChange={handleTranscriptChange}
+              onMetadataChange={setMetadata}
+              cursorPosition={cursorPosition}
+              selectedText={selectedText}
+            />
 
-          <Workspace
-            transcript={transcript}
-            metadata={metadata}
-            onTranscriptChange={handleTranscriptChange}
-            statusMessage={feedback ?? undefined}
-            onCursorPositionChange={setCursorPosition}
-            onSelectedTextChange={setSelectedText}
-          />
+            <Workspace
+              transcript={transcript}
+              metadata={metadata}
+              onTranscriptChange={handleTranscriptChange}
+              statusMessage={feedback ?? undefined}
+              onCursorPositionChange={setCursorPosition}
+              onSelectedTextChange={setSelectedText}
+            />
 
-          <button
-            type="button"
-            onClick={() => document.getElementById('dictation-upload-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-            className="flex items-center justify-center gap-2 rounded-[calc(var(--radius)-2px)] border border-dashed border-[hsl(var(--border))] px-3 py-2 text-[12px] font-semibold text-[hsl(var(--muted-foreground))] transition-all hover:border-[hsl(var(--primary))/0.4] hover:text-[hsl(var(--foreground))]"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            <span>Audio-Datei hochladen</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => document.getElementById('dictation-upload-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+              className="flex items-center justify-center gap-2 rounded-[calc(var(--radius)-2px)] border border-dashed border-[hsl(var(--border))] px-3 py-2 text-[12px] font-semibold text-[hsl(var(--muted-foreground))] transition-all hover:border-[hsl(var(--primary))/0.4] hover:text-[hsl(var(--foreground))] lg:hidden"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              <span>Audio-Datei hochladen</span>
+            </button>
+          </div>
 
-          <div id="dictation-upload-section">
+          <div className="flex flex-col gap-5" id="dictation-upload-section">
             <AudioUploader
               apiBaseUrl={apiBaseUrl}
               authToken={authToken}
@@ -201,10 +203,16 @@ export default function TranscriptionStudio() {
               cursorPosition={cursorPosition}
               selectedText={selectedText}
             />
+            <div className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 text-[12px] text-[hsl(var(--muted-foreground))] shadow-[0_1px_2px_rgba(0,0,0,0.06)]">
+              <p className="font-semibold text-[hsl(var(--foreground))]">Upload-Tipps</p>
+              <p className="mt-2">
+                Für beste Ergebnisse nutze klare Aufnahmen ohne Hintergrundgeräusche. Max. 50 MB pro Datei.
+              </p>
+            </div>
           </div>
         </main>
 
-        <footer className="flex flex-col gap-2 border-t border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-4 backdrop-blur-xl">
+        <footer className="flex flex-col gap-2 border-t border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-4 backdrop-blur-xl sm:px-6 sm:flex-row sm:justify-end">
           <button
             onClick={handleCopyTranscript}
             className="flex items-center justify-center gap-2 rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] px-4 py-3 text-[13px] font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_2px_8px_hsl(var(--primary)/0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_16px_hsl(var(--primary)/0.35)]"

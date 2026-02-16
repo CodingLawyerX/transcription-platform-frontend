@@ -49,12 +49,12 @@ export default function VerifyEmailClient() {
 
   return (
     <div className="min-h-screen bg-bg text-text relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(43,165,153,0.16),transparent_45%),radial-gradient(circle_at_85%_25%,rgba(242,190,111,0.2),transparent_45%),radial-gradient(circle_at_70%_80%,rgba(34,88,102,0.12),transparent_40%)]" />
-      <div className="absolute right-[-8%] top-12 h-72 w-72 rounded-full bg-[rgba(69,178,167,0.2)] blur-3xl animate-float" />
-      <div className="absolute left-[-10%] bottom-10 h-80 w-80 rounded-full bg-[rgba(242,190,111,0.16)] blur-3xl animate-float" style={{ animationDelay: '2s' }} />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(59,130,246,0.14),transparent_45%),radial-gradient(circle_at_85%_25%,rgba(148,163,184,0.2),transparent_45%),radial-gradient(circle_at_70%_80%,rgba(30,64,175,0.12),transparent_40%)]" />
+      <div className="absolute right-[-8%] top-12 h-72 w-72 rounded-full bg-[rgba(59,130,246,0.18)] blur-3xl animate-float" />
+      <div className="absolute left-[-10%] bottom-10 h-80 w-80 rounded-full bg-[rgba(148,163,184,0.18)] blur-3xl animate-float" style={{ animationDelay: '2s' }} />
 
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-md border-[rgba(28,45,58,0.08)] bg-white/90 shadow-soft">
+        <Card className="w-full max-w-md border-[hsl(var(--border))] bg-[hsl(var(--card))/0.92] shadow-soft">
           <CardHeader className="space-y-2 text-center">
             <CardTitle className="text-2xl font-semibold">Email bestätigen</CardTitle>
             <CardDescription>
@@ -63,17 +63,17 @@ export default function VerifyEmailClient() {
           </CardHeader>
           <CardContent className="space-y-4">
             {message && (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              <div className="rounded-lg border border-[hsl(var(--success-green))/0.25] bg-[hsl(var(--success-green))/0.08] px-4 py-3 text-sm text-[hsl(var(--success-green))]">
                 {message}
               </div>
             )}
             {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="rounded-lg border border-[hsl(var(--destructive))/0.25] bg-[hsl(var(--destructive))/0.08] px-4 py-3 text-sm text-[hsl(var(--destructive))]">
                 {error}
               </div>
             )}
 
-            <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+            <div className="rounded-lg border border-[hsl(var(--warning-orange))/0.25] bg-[hsl(var(--warning-orange))/0.08] px-4 py-3 text-sm text-[hsl(var(--warning-orange))]">
               <ul className="list-disc list-inside space-y-1">
                 <li>Überprüfen Sie auch Ihren Spam-Ordner.</li>
                 <li>Der Verifizierungslink ist 24 Stunden gültig.</li>

@@ -65,15 +65,15 @@ export default function TranscriptionList() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800 border-green-300';
+        return 'bg-[hsl(var(--success-green))/0.14] text-[hsl(var(--success-green))] border-[hsl(var(--success-green))/0.3]';
       case 'processing':
-        return 'bg-blue-100 text-blue-800 border-blue-300';
+        return 'bg-[hsl(var(--primary))/0.12] text-[hsl(var(--primary))] border-[hsl(var(--primary))/0.25]';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+        return 'bg-[hsl(var(--warning-orange))/0.12] text-[hsl(var(--warning-orange))] border-[hsl(var(--warning-orange))/0.3]';
       case 'failed':
-        return 'bg-red-100 text-red-800 border-red-300';
+        return 'bg-[hsl(var(--recording-red))/0.12] text-[hsl(var(--recording-red))] border-[hsl(var(--recording-red))/0.3]';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
+        return 'bg-[hsl(var(--secondary))] text-[hsl(var(--muted-foreground))] border-[hsl(var(--border))]';
     }
   };
 
@@ -159,7 +159,7 @@ export default function TranscriptionList() {
                   <span className="font-medium">{transcription.model_name}</span>
                 </div>
                 {transcription.error_message && (
-                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                  <div className="mt-2 rounded border border-[hsl(var(--recording-red))/0.2] bg-[hsl(var(--recording-red))/0.08] p-2 text-sm text-[hsl(var(--recording-red))]">
                     <strong>Fehler:</strong> {transcription.error_message}
                   </div>
                 )}
