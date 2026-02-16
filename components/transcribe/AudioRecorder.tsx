@@ -13,6 +13,7 @@ interface AudioRecorderProps {
   onMetadataChange: (metadata: TranscriptMetadata) => void;
   cursorPosition?: number | null;
   selectedText?: string;
+  className?: string;
 }
 
 export default function AudioRecorder({
@@ -24,6 +25,7 @@ export default function AudioRecorder({
   onMetadataChange,
   cursorPosition,
   selectedText,
+  className,
 }: AudioRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [recStatus, setRecStatus] = useState('Mikrofon ist bereit.');
@@ -438,7 +440,7 @@ export default function AudioRecorder({
         isRecording
           ? 'border-[hsl(var(--recording-red))/0.25] bg-[hsl(var(--recording-red))/0.03] shadow-[0_4px_12px_rgba(244,67,54,0.12)]'
           : 'border-[hsl(var(--border))] bg-[hsl(var(--card))] shadow-[0_1px_3px_rgba(0,0,0,0.08)]'
-      }`}
+      } ${className ?? ''}`}
     >
       <div className="flex items-center justify-between">
         <div className={`inline-flex items-center gap-2 rounded-[calc(var(--radius)-2px)] border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${badgeClass}`}>

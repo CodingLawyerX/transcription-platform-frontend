@@ -16,6 +16,7 @@ interface AudioUploaderProps {
   onMetadataChange: (metadata: TranscriptMetadata) => void;
   cursorPosition?: number | null;
   selectedText?: string;
+  className?: string;
 }
 
 export default function AudioUploader({
@@ -29,6 +30,7 @@ export default function AudioUploader({
   onMetadataChange,
   cursorPosition,
   selectedText,
+  className,
 }: AudioUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState('Warte auf Audio …');
@@ -229,7 +231,7 @@ export default function AudioUploader({
   };
 
   return (
-    <section className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 flex flex-col gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
+    <section className={`rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 flex flex-col gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.08)] ${className ?? ''}`}>
       <div className="flex items-center justify-between">
         <h2 className="m-0 text-[12px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
           Audio-Upload

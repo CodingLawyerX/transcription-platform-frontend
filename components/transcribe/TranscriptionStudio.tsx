@@ -112,13 +112,47 @@ export default function TranscriptionStudio() {
     }
   }, [transcript]);
 
+  const handleInsertIntoWord = useCallback(async () => {
+    if (!transcript.trim()) {
+      setFeedback({ text: 'Keine Inhalte zum Einfügen vorhanden.', tone: 'muted' });
+      setTimeout(() => setFeedback(null), 3000);
+      return;
+    }
+
+    try {
+      const office = (globalThis as any)?.Office;
+      if (office?.context?.host === office.HostType?.Word && office?.context?.document?.setSelectedDataAsync) {
+        office.context.document.setSelectedDataAsync(
+          transcript,
+          { coercionType: office.CoercionType.Text },
+          (asyncResult: any) => {
+            if (asyncResult.status === office.AsyncResultStatus.Failed) {
+              setFeedback({ text: 'Einfügen fehlgeschlagen.', tone: 'error' });
+            } else {
+              setFeedback({ text: 'Text in Word eingefügt.', tone: 'success' });
+            }
+            setTimeout(() => setFeedback(null), 3000);
+          }
+        );
+        return;
+      }
+
+      await navigator.clipboard.writeText(transcript);
+      setFeedback({ text: 'Clipboard gefüllt – in Word einfügen (Strg+V).', tone: 'success' });
+      setTimeout(() => setFeedback(null), 3000);
+    } catch (error) {
+      setFeedback({ text: 'Einfügen fehlgeschlagen.', tone: 'error' });
+      setTimeout(() => setFeedback(null), 3000);
+    }
+  }, [transcript]);
+
   return (
     <div
       className="min-h-screen bg-[radial-gradient(120%_80%_at_50%_0%,hsl(var(--primary)/0.12),transparent_60%),hsl(var(--background))] text-[hsl(var(--foreground))]"
       style={dictationCssVars}
     >
-      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col">
-        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-3 backdrop-blur-xl sm:px-6">
+      <div className="mx-auto flex min-h-screen w-full max-w-[420px] flex-col">
+        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-3 backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-[6px] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] text-[12px] font-bold text-white shadow-[0_2px_8px_hsl(var(--primary)/0.2)]">
               <Image
@@ -133,29 +167,67 @@ export default function TranscriptionStudio() {
             <span className="text-[14px] font-semibold tracking-[-0.3px]">Simpliant Transcribe</span>
           </div>
 
-          <div className="relative">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[hsl(var(--muted-foreground))]">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-              </svg>
-            </span>
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="max-w-[150px] appearance-none rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] py-1.5 pl-9 pr-7 text-[12px] font-semibold text-[hsl(var(--foreground))] transition-colors focus:outline-none focus:border-[hsl(var(--ring))]"
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <span className="pointer-events-none absolute inset-y-0 left-2.5 flex items-center text-[hsl(var(--muted-foreground))]">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
+              </span>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="max-w-[132px] appearance-none rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] py-1.5 pl-7 pr-6 text-[11px] font-semibold text-[hsl(var(--foreground))] transition-colors focus:outline-none focus:border-[hsl(var(--ring))]"
+              >
+                {TRANSCRIBE_LANGUAGE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.value === 'auto' ? 'Auto' : option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleInsertIntoWord}
+              className="flex h-8 w-8 items-center justify-center rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--primary))/0.4] bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_6px_16px_hsl(var(--primary)/0.3)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_20px_hsl(var(--primary)/0.35)]"
+              aria-label="In Word einfuegen"
+              title="In Word einfuegen"
             >
-              {TRANSCRIBE_LANGUAGE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.value === 'auto' ? 'Auto' : option.label}
-                </option>
-              ))}
-            </select>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 19V5" />
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+            <button
+              onClick={handleCopyTranscript}
+              className="flex h-8 w-8 items-center justify-center rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] transition hover:text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))/0.35]"
+              aria-label="Kopieren"
+              title="Kopieren"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            </button>
+            <button
+              onClick={handleClearTranscript}
+              className="flex h-8 w-8 items-center justify-center rounded-[calc(var(--radius)-2px)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--muted-foreground))] transition hover:text-[hsl(var(--recording-red))] hover:border-[hsl(var(--recording-red))/0.4]"
+              aria-label="Leeren"
+              title="Leeren"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 6h18" />
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                <path d="M10 11v6" />
+                <path d="M14 11v6" />
+                <path d="M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14" />
+              </svg>
+            </button>
           </div>
         </header>
 
-        <main className="grid flex-1 gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1.25fr_0.75fr]">
-          <div className="flex flex-col gap-5">
+        <main className="flex flex-1 flex-col gap-4 px-4 py-5">
+          <section className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.08)]">
             <AudioRecorder
               apiBaseUrl={apiBaseUrl}
               authToken={authToken}
@@ -165,32 +237,13 @@ export default function TranscriptionStudio() {
               onMetadataChange={setMetadata}
               cursorPosition={cursorPosition}
               selectedText={selectedText}
+              className="border-0 bg-transparent p-0 shadow-none"
             />
-
-            <Workspace
-              transcript={transcript}
-              metadata={metadata}
-              onTranscriptChange={handleTranscriptChange}
-              statusMessage={feedback ?? undefined}
-              onCursorPositionChange={setCursorPosition}
-              onSelectedTextChange={setSelectedText}
-            />
-
-            <button
-              type="button"
-              onClick={() => document.getElementById('dictation-upload-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-              className="flex items-center justify-center gap-2 rounded-[calc(var(--radius)-2px)] border border-dashed border-[hsl(var(--border))] px-3 py-2 text-[12px] font-semibold text-[hsl(var(--muted-foreground))] transition-all hover:border-[hsl(var(--primary))/0.4] hover:text-[hsl(var(--foreground))] lg:hidden"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              <span>Audio-Datei hochladen</span>
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-5" id="dictation-upload-section">
+            <div className="my-4 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-[hsl(var(--muted-foreground))]">
+              <span className="h-px flex-1 bg-[hsl(var(--border))]" />
+              <span>Upload</span>
+              <span className="h-px flex-1 bg-[hsl(var(--border))]" />
+            </div>
             <AudioUploader
               apiBaseUrl={apiBaseUrl}
               authToken={authToken}
@@ -202,30 +255,19 @@ export default function TranscriptionStudio() {
               onMetadataChange={setMetadata}
               cursorPosition={cursorPosition}
               selectedText={selectedText}
+              className="border-0 bg-transparent p-0 shadow-none"
             />
-            <div className="rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4 text-[12px] text-[hsl(var(--muted-foreground))] shadow-[0_1px_2px_rgba(0,0,0,0.06)]">
-              <p className="font-semibold text-[hsl(var(--foreground))]">Upload-Tipps</p>
-              <p className="mt-2">
-                Für beste Ergebnisse nutze klare Aufnahmen ohne Hintergrundgeräusche. Max. 50 MB pro Datei.
-              </p>
-            </div>
-          </div>
-        </main>
+          </section>
 
-        <footer className="flex flex-col gap-2 border-t border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-4 backdrop-blur-xl sm:px-6 sm:flex-row sm:justify-end">
-          <button
-            onClick={handleCopyTranscript}
-            className="flex items-center justify-center gap-2 rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[linear-gradient(135deg,hsl(var(--primary)),hsl(var(--primary-light)))] px-4 py-3 text-[13px] font-semibold text-[hsl(var(--primary-foreground))] shadow-[0_2px_8px_hsl(var(--primary)/0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_16px_hsl(var(--primary)/0.35)]"
-          >
-            Kopieren
-          </button>
-          <button
-            onClick={handleClearTranscript}
-            className="flex items-center justify-center gap-2 rounded-[var(--radius)] border border-[hsl(var(--border))] bg-[hsl(var(--secondary))] px-4 py-3 text-[13px] font-semibold text-[hsl(var(--foreground))] transition-all hover:bg-[hsl(var(--accent))]"
-          >
-            Leeren
-          </button>
-        </footer>
+          <Workspace
+            transcript={transcript}
+            metadata={metadata}
+            onTranscriptChange={handleTranscriptChange}
+            statusMessage={feedback ?? undefined}
+            onCursorPositionChange={setCursorPosition}
+            onSelectedTextChange={setSelectedText}
+          />
+        </main>
       </div>
     </div>
   );
