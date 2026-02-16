@@ -95,7 +95,7 @@ export default function Home() {
     }
     if (isLoggedIn) {
       return (
-        <div className="hero-actions mb-6 flex flex-wrap items-center gap-3 hero-fade" style={{ animationDelay: '0.3s' }}>
+        <div className="hero-actions mb-10 flex flex-wrap items-center gap-3 hero-fade" style={{ animationDelay: '0.3s' }}>
           <Button
             asChild
             size="lg"
@@ -115,7 +115,7 @@ export default function Home() {
       );
     }
     return (
-      <div className="hero-actions mb-6 flex flex-wrap items-center gap-3 hero-fade" style={{ animationDelay: '0.3s' }}>
+      <div className="hero-actions mb-10 flex flex-wrap items-center gap-3 hero-fade" style={{ animationDelay: '0.3s' }}>
         <Button
           asChild
           size="lg"
@@ -433,7 +433,7 @@ export default function Home() {
           line-height: 1.65;
           color: var(--ink-muted);
           max-width: 460px;
-          margin-bottom: 36px;
+          margin-bottom: 44px;
         }
 
         .hero-tags {
