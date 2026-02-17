@@ -17,6 +17,7 @@ export interface RegisterData {
   name?: string;
   password1: string;
   password2: string;
+  altcha?: string;
 }
 
 export interface RegisterResponse {

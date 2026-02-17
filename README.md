@@ -76,6 +76,46 @@ Das Frontend kommuniziert mit dem Django-Backend über REST-API unter `/rest/api
 - **Transkription Health**: `/rest/api/v1/transcribe/transcriptions/health/`
 - **Infrastruktur Health**: `/rest/api/v1/transcribe/health/`
 - **Settings**: `/rest/api/v1/transcribe/settings/1/`
+- **ALTCHA Challenge**: `/rest/api/v1/altcha/challenge` (CAPTCHA Challenge)
+
+### CAPTCHA (ALTCHA)
+
+Das Frontend verwendet **ALTCHA** – ein self-hosted Proof-of-Work CAPTCHA-System, das keine externen Dienste benötigt.
+
+**Komponenten:**
+- `components/auth/Altcha.tsx` – Reusable ALTCHA Widget Komponente
+- `types/altcha.d.ts` – TypeScript Deklarationen für das Widget
+
+**Verwendung im Registrierungsformular:**
+```tsx
+import Altcha from '@/components/auth/Altcha';
+import type { AltchaRef } from '@/components/auth/Altcha';
+
+const altchaRef = useRef<AltchaRef>(null);
+
+// Im Formular:
+<Altcha ref={altchaRef} />
+
+// Bei Submit:
+const altchaValue = altchaRef.current?.value;
+if (!altchaValue) {
+  setErrors(['Bitte lösen Sie das CAPTCHA.']);
+  return;
+}
+
+// Im API-Call:
+await authApi.register({
+  ...formData,
+  altcha: altchaValue,
+});
+```
+
+**Wie es funktioniert:**
+1. Das Widget lädt eine Challenge vom Backend (`GET /altcha/challenge`)
+2. Der Browser führt Proof-of-Work-Berechnungen durch (SHA-256)
+3. Bei Erfolg wird ein Payload generiert
+4. Dieser Payload wird beim Registrieren mitgesendet
+5. Das Backend verifiziert die Lösung
 
 ### Authentifizierung
 

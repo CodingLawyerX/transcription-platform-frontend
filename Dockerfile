@@ -7,6 +7,8 @@ RUN npm ci
 FROM node:18-alpine AS builder
 
 WORKDIR /app
+ARG NEXT_PUBLIC_HCAPTCHA_SITEKEY
+ENV NEXT_PUBLIC_HCAPTCHA_SITEKEY=$NEXT_PUBLIC_HCAPTCHA_SITEKEY
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

@@ -1,19 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authApi, RegisterData, formatApiErrors } from '@/lib/auth';
+import { authApi, formatApiErrors } from '@/lib/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import Altcha from '@/components/auth/Altcha';
+import type { AltchaRef } from '@/components/auth/Altcha';
 
 export default function RegisterForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [successEmail, setSuccessEmail] = useState<string | null>(null);
-  const [formData, setFormData] = useState<RegisterData>({
+  const altchaRef = useRef<AltchaRef>(null);
+  const [formData, setFormData] = useState({
     email: '',
     name: '',
     password1: '',
@@ -52,6 +55,11 @@ export default function RegisterForm() {
       validationErrors.push('Passwörter stimmen nicht überein');
     }
 
+    const altchaValue = altchaRef.current?.value;
+    if (!altchaValue) {
+      validationErrors.push('Bitte lösen Sie das CAPTCHA.');
+    }
+
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
       setIsLoading(false);
@@ -59,7 +67,10 @@ export default function RegisterForm() {
     }
 
     try {
-      const result = await authApi.register(formData);
+      const result = await authApi.register({
+        ...formData,
+        altcha: altchaValue || undefined,
+      });
 
       if (result.data) {
         setSuccessEmail(formData.email);
@@ -72,6 +83,7 @@ export default function RegisterForm() {
     } catch (error) {
       setErrors(['Ein unerwarteter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.']);
     } finally {
+      altchaRef.current?.reset();
       setIsLoading(false);
     }
   };
@@ -186,6 +198,8 @@ export default function RegisterForm() {
                     disabled={isLoading}
                   />
                 </div>
+
+                <Altcha ref={altchaRef} />
 
                 <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
                   {isLoading ? 'Registrierung läuft …' : 'Account erstellen'}
